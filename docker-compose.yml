@@ -1,0 +1,48 @@
+# Docker Compose のバージョン
+version: "3.9"
+
+# 起動するサービス一覧
+services:
+
+  # PostgreSQLサービス名
+  postgres:
+
+    # 使用するDockerイメージ
+    # PostgreSQL version 16 を使用
+    image: postgres:16
+
+    # コンテナ名
+    container_name: portfolio-postgres
+
+    # Docker再起動時に自動起動
+    restart: always
+
+    # PostgreSQLの初期設定
+    environment:
+
+      # ユーザー名
+      POSTGRES_USER: admin
+
+      # パスワード
+      POSTGRES_PASSWORD: password
+
+      # 作成するDB名
+      POSTGRES_DB: portfolio
+
+    # ポート設定
+      # Mac側:コンテナ側
+      # localhost:5432 でアクセス可能
+    ports:
+      - "5433:5432"
+
+    # データ永続化設定
+    volumes:
+
+      # PostgreSQLデータ保存場所
+      - postgres_data:/var/lib/postgresql/data
+
+# 永続化用ボリューム作成
+volumes:
+
+  # PostgreSQL専用ストレージ
+  postgres_data:
