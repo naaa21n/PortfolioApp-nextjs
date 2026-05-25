@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧩 Portfolio App（タスク・学習・健康管理アプリ）
 
-## Getting Started
+このプロジェクトは、自分の生活管理を目的としたフルスタックWebアプリです。  
+タスク管理・学習管理・健康管理を1つのアプリに統合しています。
 
-First, run the development server:
+---
 
-```bash
+## 🚀 使用技術
+
+### フロントエンド
+- Next.js（React）
+- TypeScript
+- Tailwind CSS
+
+### バックエンド
+- Spring Boot
+- Spring Data JPA
+- REST API
+
+### データベース
+- PostgreSQL（Dockerで構築）
+
+### その他
+- Git / GitHub（バージョン管理）
+- Render（デプロイ予定）
+- IntelliJ IDEA
+
+---
+
+## 📱 機能
+
+### 📝 タスク管理
+- タスク追加
+- 完了処理
+- 削除
+
+### 📚 学習管理（開発予定）
+- 学習内容の記録
+- 学習進捗管理
+
+### 🏃 健康管理（開発予定）
+- 体重記録
+- 運動ログ管理
+
+---
+
+## 🔗 API設計（Spring Boot）
+
+GET    /api/hello
+GET    /api/tasks
+POST   /api/tasks
+PUT    /api/tasks/{id}/done
+DELETE /api/tasks/{id}
+
+---
+
+## 🧠 工夫した点
+
+- フロントエンドとバックエンドを分離した構成
+- REST APIを用いたデータ通信
+- Dockerを使ったPostgreSQL環境構築
+- useEffectによる非同期データ取得
+
+---
+
+## 🖥 起動方法
+
+### フロントエンド
+
+npm install  
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### バックエンド
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+./mvnw spring-boot:run
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+### データベース（Docker）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+docker-compose up -d
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📷 スクリーンショット
+（ここに画面画像を追加）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎯 今後の改善
+
+- ログイン機能の追加
+- ユーザーごとのデータ管理
+- 学習・健康機能の完成
+- デプロイ（Vercel + Render）
+
+---
+
+## 👤 作者
+ポートフォリオ用個人開発プロジェクト
