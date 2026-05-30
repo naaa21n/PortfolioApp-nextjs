@@ -1,634 +1,297 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// =========================
+// Next.js のページ遷移
+// =========================
 
-export default function Home() {
-  // ===== state管理 =====
-  const [message, setMessage] = useState("");
+import Link from "next/link";
 
-  // ===== タスク管理 =====
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [title, setTitle] = useState("");
+// =========================
+// トップページ
+// =========================
 
-  // ===== 学習管理 =====
-  const [learnings, setLearnings] = useState<any[]>([]);
-  const [learningText, setLearningText] = useState("");
-
-  // ===== 健康管理 =====
-  const [healths, setHealths] = useState<any[]>([]);
-  const [steps, setSteps] = useState("");
-
-  // ===== 初回ロード =====
-  useEffect(() => {
-    fetch("http://localhost:8080/api/hello")
-      .then((res) => res.text())
-      .then((data) => setMessage(data));
-
-    fetch("http://localhost:8080/api/tasks")
-      .then((res) => res.json())
-      .then((data) => setTasks(data));
-
-    fetch("http://localhost:8080/api/learnings")
-      .then((res) => res.json())
-      .then((data) => setLearnings(data));
-
-    fetch("http://localhost:8080/api/healths")
-      .then((res) => res.json())
-      .then((data) => setHealths(data));
-  }, []);
-
-  // ===== タスク追加 =====
-  const addTask = () => {
-    if (!title) return;
-
-    fetch("http://localhost:8080/api/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: String(Date.now()),
-        title: title,
-        done: false,
-      }),
-    }).then(() => {
-      fetch("http://localhost:8080/api/tasks")
-        .then((res) => res.json())
-        .then((data) => setTasks(data));
-
-      setTitle("");
-    });
-  };
-
-  // ===== タスク削除 =====
-  const deleteTask = (id: string) => {
-    fetch(`http://localhost:8080/api/tasks/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      fetch("http://localhost:8080/api/tasks")
-        .then((res) => res.json())
-        .then((data) => setTasks(data));
-    });
-  };
-
-  // ===== タスク完了 =====
-  const completeTask = (id: string) => {
-    fetch(`http://localhost:8080/api/tasks/${id}/done`, {
-      method: "PUT",
-    }).then(() => {
-      fetch("http://localhost:8080/api/tasks")
-        .then((res) => res.json())
-        .then((data) => setTasks(data));
-    });
-  };
-
-  // ===== 学習追加 =====
-  const addLearning = () => {
-    if (!learningText) return;
-
-    fetch("http://localhost:8080/api/learnings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: String(Date.now()),
-        title: learningText,
-        done: false,
-      }),
-    }).then(() => {
-      fetch("http://localhost:8080/api/learnings")
-        .then((res) => res.json())
-        .then((data) => setLearnings(data));
-
-      setLearningText("");
-    });
-  };
-
-  // ===== 学習削除 =====
-  const deleteLearning = (id: string) => {
-    fetch(`http://localhost:8080/api/learnings/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      fetch("http://localhost:8080/api/learnings")
-        .then((res) => res.json())
-        .then((data) => setLearnings(data));
-    });
-  };
-
-  // ===== 学習完了 =====
-  const completeLearning = (id: string) => {
-    fetch(`http://localhost:8080/api/learnings/${id}/done`, {
-      method: "PUT",
-    }).then(() => {
-      fetch("http://localhost:8080/api/learnings")
-        .then((res) => res.json())
-        .then((data) => setLearnings(data));
-    });
-  };
-
-  // ===== 歩数追加 =====
-  const addHealth = () => {
-    if (!steps) return;
-
-    fetch("http://localhost:8080/api/healths", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: String(Date.now()),
-        title: `${steps}歩`,
-        done: false,
-      }),
-    }).then(() => {
-      fetch("http://localhost:8080/api/healths")
-        .then((res) => res.json())
-        .then((data) => setHealths(data));
-
-      setSteps("");
-    });
-  };
-
-  // ===== 歩数削除 =====
-  const deleteHealth = (id: string) => {
-    fetch(`http://localhost:8080/api/healths/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      fetch("http://localhost:8080/api/healths")
-        .then((res) => res.json())
-        .then((data) => setHealths(data));
-    });
-  };
-
+export default function HomePage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#556b5d",
-        padding: "40px",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* ===== タイトル ===== */}
+    // =========================
+    // 全体レイアウト
+    // =========================
 
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1
-          style={{
-            fontSize: "42px",
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          タスク・学習・健康管理アプリ
-        </h1>
+    <main className="min-h-screen bg-[#f8f7fc] text-gray-900">
+      {/* ========================= */}
+      {/* Header */}
+      {/* ========================= */}
 
-        <p
-          style={{
-            marginTop: "10px",
-            color: "#d1d5db",
-            fontSize: "18px",
-          }}
-        >
-          Spring Boot × Next.js Portfolio
-        </p>
+      <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md shadow-sm">
+        {/* 中央寄せコンテナ */}
 
-        <p
-          style={{
-            marginTop: "12px",
-            color: "#bfdbfe",
-          }}
-        >
-          API Status : {message}
-        </p>
-      </div>
+        <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
+          {/* ロゴ */}
 
-      {/* ===== 横並び ===== */}
+          <h1 className="text-3xl font-bold">
+            習慣の民 ✨
+          </h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: "24px",
-        }}
-      >
+          {/* ナビゲーション */}
+
+          <nav className="flex items-center gap-10">
+            <a className="font-semibold hover:text-violet-500 transition">
+              タスクとメモ帳
+            </a>
+
+            <a className="font-semibold hover:text-violet-500 transition">
+              学習と読書の記録
+            </a>
+
+            <a className="font-semibold hover:text-violet-500 transition">
+              健康と日記
+            </a>
+
+            {/* ログインボタン */}
+
+            <Link href="/login">
+              <button className="px-5 py-3 rounded-2xl border border-gray-300 font-bold hover:bg-gray-100 transition">
+                ログイン
+              </button>
+            </Link>
+
+            {/* 会員登録ボタン */}
+
+            <Link href="/register">
+              <button className="px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 text-white font-bold shadow-lg hover:scale-105 transition">
+                登録
+              </button>
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* ========================= */}
+      {/* Hero Section */}
+      {/* ========================= */}
+
+      <section className="max-w-7xl mx-auto grid grid-cols-2 gap-12 items-center px-8 py-20">
         {/* ========================= */}
-        {/* タスク管理 */}
+        {/* 左側テキスト */}
         {/* ========================= */}
 
-        <div style={cardStyle}>
-          <h2 style={titleStyle}>📝 タスク管理</h2>
+        <div>
+          {/* メインタイトル */}
 
-          <div style={inputAreaStyle}>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="タスクを入力"
-              style={inputStyle}
-            />
+          <h2 className="text-7xl leading-tight font-bold mb-8">
+            選ばれたのは、
+            <br />
+            <span className="text-violet-500">
+              習慣
+            </span>
+            でした。
+          </h2>
 
-            <button onClick={addTask} style={blueButton}>
-              追加
-            </button>
+          {/* サブテキスト */}
+
+          <p className="text-2xl leading-loose text-gray-700 mb-10">
+            何をしても長く続くことのない人生に
+            <br />
+            終わりを告げよう。
+          </p>
+
+          {/* メッセージカード */}
+
+          <div className="inline-flex items-center gap-5 bg-white rounded-3xl px-8 py-6 shadow-xl">
+            {/* アイコン */}
+
+            <div className="text-5xl">🏆</div>
+
+            {/* テキスト */}
+
+            <div className="text-lg font-semibold leading-relaxed">
+              小さな一歩の積み重ねが、
+              <br />
+              未来のあなたを作ります。
+            </div>
           </div>
-
-          <ul style={ulStyle}>
-            {tasks.map((task: any) => (
-              <li
-                key={task.id}
-                style={{
-                  ...listStyle,
-                  background: task.done ? "#d1d5db" : "#f9fafb",
-                  opacity: task.done ? 0.6 : 1,
-                }}
-              >
-                <span
-                  style={{
-                    textDecoration: task.done
-                      ? "line-through"
-                      : "none",
-                    color: task.done ? "#6b7280" : "#111827",
-                    fontWeight: "500",
-                  }}
-                >
-                  {task.title}
-                </span>
-
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <button
-                    onClick={() => completeTask(task.id)}
-                    style={greenButton}
-                  >
-                    完了
-                  </button>
-
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    style={redButton}
-                  >
-                    削除
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* ========================= */}
-        {/* 学習管理 */}
+        {/* 右側画像 */}
         {/* ========================= */}
 
-        <div style={cardStyle}>
-          <h2 style={titleStyle}>📚 学習管理</h2>
+        <div>
+          <img
+            src="/hero.png"
+            alt="hero"
+            className="w-full rounded-[36px] object-cover shadow-2xl"
+          />
+        </div>
+      </section>
 
-          <div style={inputAreaStyle}>
-            <input
-              value={learningText}
-              onChange={(e) => setLearningText(e.target.value)}
-              placeholder="学習内容を入力"
-              style={inputStyle}
-            />
+      {/* ========================= */}
+      {/* Features */}
+      {/* ========================= */}
 
-            <button onClick={addLearning} style={greenButton}>
-              追加
-            </button>
+      <section className="max-w-7xl mx-auto px-8 pb-24 flex flex-col gap-16">
+        {/* ========================= */}
+        {/* Feature 1 */}
+        {/* ========================= */}
+
+        <div className="grid grid-cols-2 gap-10 items-center">
+          {/* 左画像 */}
+
+          <img
+            src="/task.png"
+            alt="task"
+            className="w-full h-[420px] object-cover rounded-[36px] shadow-xl"
+          />
+
+          {/* 右説明 */}
+
+          <div className="bg-violet-50 rounded-[36px] p-14 h-[420px] flex flex-col justify-center">
+            {/* アイコン */}
+
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-4xl mb-8">
+              📝
+            </div>
+
+            {/* タイトル */}
+
+            <h3 className="text-5xl font-bold mb-8">
+              タスクとメモ帳
+            </h3>
+
+            {/* 説明 */}
+
+            <p className="text-2xl leading-loose text-gray-700">
+              習慣化の最初の一歩は
+              <br />
+              目につくところに目標や予定を掲げること。
+              <br />
+              <br />
+              予定、行動、考えを
+              <br />
+              シンプルに書き留めておけます。
+            </p>
           </div>
-
-          <ul style={ulStyle}>
-            {learnings.map((learning: any) => (
-              <li
-                key={learning.id}
-                style={{
-                  ...listStyle,
-                  background: learning.done
-                    ? "#d1d5db"
-                    : "#f9fafb",
-                  opacity: learning.done ? 0.6 : 1,
-                }}
-              >
-                <span
-                  style={{
-                    textDecoration: learning.done
-                      ? "line-through"
-                      : "none",
-                    color: learning.done
-                      ? "#6b7280"
-                      : "#111827",
-                    fontWeight: "500",
-                  }}
-                >
-                  {learning.title}
-                </span>
-
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <button
-                    onClick={() =>
-                      completeLearning(learning.id)
-                    }
-                    style={greenButton}
-                  >
-                    完了
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      deleteLearning(learning.id)
-                    }
-                    style={redButton}
-                  >
-                    削除
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* ========================= */}
-        {/* 健康管理 */}
+        {/* Feature 2 */}
         {/* ========================= */}
 
-        <div style={cardStyle}>
-          <h2 style={titleStyle}>🏃 健康管理</h2>
+        <div className="grid grid-cols-2 gap-10 items-center">
+          {/* 左説明 */}
 
-          <div style={inputAreaStyle}>
-            <input
-              value={steps}
-              onChange={(e) => setSteps(e.target.value)}
-              placeholder="今日の歩数"
-              style={inputStyle}
-            />
+          <div className="bg-violet-50 rounded-[36px] p-14 h-[420px] flex flex-col justify-center">
+            {/* アイコン */}
 
-            <button onClick={addHealth} style={blueButton}>
-              記録
-            </button>
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-4xl mb-8">
+              📖
+            </div>
+
+            {/* タイトル */}
+
+            <h3 className="text-5xl font-bold mb-8">
+              学習と読書の記録
+            </h3>
+
+            {/* 説明 */}
+
+            <p className="text-2xl leading-loose text-gray-700">
+              習慣化の中で身につけたことや
+              <br />
+              活字に触れたらここに残しましょう。
+              <br />
+              <br />
+              学習記録と読書記録を
+              <br />
+              感覚的に残せます。
+            </p>
           </div>
 
-          {/* ===== グラフ ===== */}
+          {/* 右画像 */}
 
-          <div
-            style={{
-              background: "#f3f4f6",
-              borderRadius: "14px",
-              padding: "16px",
-              marginBottom: "30px",
-            }}
-          >
-            {/* ===== タイトル + 凡例 ===== */}
+          <img
+            src="/study.png"
+            alt="study"
+            className="w-full h-[420px] object-cover rounded-[36px] shadow-xl"
+          />
+        </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "14px",
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: "18px",
-                  color: "#1f2937",
-                }}
-              >
-                📈 歩数グラフ
+        {/* ========================= */}
+        {/* Feature 3 */}
+        {/* ========================= */}
+
+        <div className="grid grid-cols-2 gap-10 items-center">
+          {/* 左画像 */}
+
+          <img
+            src="/health.png"
+            alt="health"
+            className="w-full h-[420px] object-cover rounded-[36px] shadow-xl"
+          />
+
+          {/* 右説明 */}
+
+          <div className="bg-violet-50 rounded-[36px] p-14 h-[420px] flex flex-col justify-center">
+            {/* アイコン */}
+
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-4xl mb-8">
+              🤍
+            </div>
+
+            {/* タイトル */}
+
+            <h3 className="text-5xl font-bold mb-8">
+              健康と記録
+            </h3>
+
+            {/* 説明 */}
+
+            <p className="text-2xl leading-loose text-gray-700">
+              散歩を毎日することで頭の整理ができます。
+              <br />
+              <br />
+              習慣化したことを日記につければ
+              <br />
+              自分の変化を確認することができます。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================= */}
+      {/* CTA Section */}
+      {/* ========================= */}
+
+      <section className="max-w-7xl mx-auto mb-24 px-8">
+        <div className="rounded-[40px] bg-gradient-to-r from-rose-50 to-violet-50 p-14 flex items-center justify-between shadow-xl">
+          {/* 左側 */}
+
+          <div className="flex items-center gap-8">
+            {/* アイコン */}
+
+            <div className="text-7xl">🎉</div>
+
+            {/* テキスト */}
+
+            <div>
+              <h3 className="text-4xl font-bold mb-2">
+                あなたの習慣を
               </h3>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  fontSize: "13px",
-                  color: "#374151",
-                }}
-              >
-                <div
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    background:
-                      "linear-gradient(to top, #2563eb, #60a5fa)",
-                    borderRadius: "4px",
-                  }}
-                />
-
-                <span>歩数</span>
-              </div>
-            </div>
-
-            {/* ===== グラフ本体 ===== */}
-
-            <div
-              style={{
-                position: "relative",
-                height: "260px",
-                paddingTop: "10px",
-              }}
-            >
-              {/* ===== メモリ線 ===== */}
-
-              {[5000, 10000, 15000, 20000].map((line) => (
-                <div
-                  key={line}
-                  style={{
-                    position: "absolute",
-                    bottom: `${line / 100}px`,
-                    left: 0,
-                    width: "100%",
-                    borderTop: "1px dashed #cbd5e1",
-                  }}
-                >
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "-5px",
-                      top: "-10px",
-                      fontSize: "11px",
-                      color: "#6b7280",
-                      background: "#f3f4f6",
-                      paddingRight: "6px",
-                    }}
-                  >
-                    {line}
-                  </span>
-                </div>
-              ))}
-
-              {/* ===== 棒 ===== */}
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-end",
-                  gap: "12px",
-                  height: "100%",
-                }}
-              >
-                {healths.map(
-                  (health: any, index: number) => {
-                    const stepValue = parseInt(
-                      health.title.replace("歩", "")
-                    );
-
-                    const height = Math.max(
-                      stepValue / 100,
-                      20
-                    );
-
-                    return (
-                      <div
-                        key={health.id}
-                        style={{
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "flex-end",
-                          height: "100%",
-                          zIndex: 2,
-                        }}
-                      >
-                        <span
-                          style={{
-                            marginBottom: "8px",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            color: "#1f2937",
-                          }}
-                        >
-                          {stepValue}
-                        </span>
-
-                        <div
-                          style={{
-                            width: "100%",
-                            maxWidth: "40px",
-                            height: `${height}px`,
-                            background:
-                              "linear-gradient(to top, #2563eb, #60a5fa)",
-                            borderRadius:
-                              "10px 10px 0 0",
-                            transition: "0.3s",
-                            boxShadow:
-                              "0 4px 10px rgba(37,99,235,0.3)",
-                          }}
-                        />
-
-                        <span
-                          style={{
-                            marginTop: "10px",
-                            fontSize: "11px",
-                            color: "#6b7280",
-                          }}
-                        >
-                          Day {index + 1}
-                        </span>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
+              <h3 className="text-4xl font-bold">
+                もっと気軽に。
+              </h3>
             </div>
           </div>
 
-          <ul style={ulStyle}>
-            {healths.map((health: any) => (
-              <li key={health.id} style={listStyle}>
-                <span
-                  style={{
-                    fontWeight: "500",
-                  }}
-                >
-                  {health.title}
-                </span>
+          {/* 会員登録ボタン */}
 
-                <button
-                  onClick={() => deleteHealth(health.id)}
-                  style={redButton}
-                >
-                  削除
-                </button>
-              </li>
-            ))}
-          </ul>
+          <Link href="/register">
+            <button className="px-14 py-6 rounded-3xl bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-2xl font-bold shadow-xl hover:scale-105 transition">
+              会員登録はこちら
+            </button>
+          </Link>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
-
-// ===== 共通スタイル =====
-
-const cardStyle = {
-  background: "white",
-  borderRadius: "20px",
-  padding: "24px",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
-};
-
-const titleStyle = {
-  fontSize: "24px",
-  marginBottom: "20px",
-  color: "#1f2937",
-};
-
-const inputAreaStyle = {
-  display: "flex",
-  gap: "10px",
-  marginBottom: "20px",
-};
-
-const ulStyle = {
-  listStyle: "none",
-  padding: 0,
-};
-
-const inputStyle = {
-  padding: "10px",
-  flex: 1,
-  border: "1px solid #d1d5db",
-  borderRadius: "8px",
-  outline: "none",
-};
-
-const listStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "12px",
-  border: "1px solid #e5e7eb",
-  borderRadius: "10px",
-  marginBottom: "10px",
-  transition: "0.2s",
-};
-
-const blueButton = {
-  padding: "10px 16px",
-  background: "#2563eb",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const greenButton = {
-  padding: "10px 16px",
-  background: "#10b981",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const redButton = {
-  padding: "10px 16px",
-  background: "#ef4444",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
