@@ -17,8 +17,8 @@ const navItems = [
   { label: "タスクとメモ帳", href: "/tasks", icon: SlidersHorizontal },
   { label: "学習と読書の記録", href: "/learnings", icon: BookOpen },
   { label: "健康と日記", href: "/health", icon: Heart },
-  { label: "カレンダー", href: "/calendar", icon: Calendar },
-  { label: "統計・レポート", href: "/analytics", icon: BarChart3 },
+  //{ label: "カレンダー", href: "/calendar", icon: Calendar },
+  //{ label: "統計・レポート", href: "/analytics", icon: BarChart3 },
 ];
 
 export default function Sidebar() {

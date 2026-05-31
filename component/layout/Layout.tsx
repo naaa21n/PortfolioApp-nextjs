@@ -17,7 +17,15 @@ export default function Layout({ children, currentPage }: LayoutProps) {
       <Sidebar />
 
       {/* 右側：メインコンテンツエリア */}
-      <main className="flex-1 h-screen overflow-y-auto">
+      <main
+      style={{
+        flex: 1,
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg,#f5f3ff 0%,#eef2ff 100%)",
+      }}
+      className="flex-1 h-screen overflow-y-auto"
+      >
         {children}
       </main>
       

@@ -1,3 +1,5 @@
+// LarningSection.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -164,6 +166,8 @@ export default function LearningSection() {
         style={{
           padding: "40px", // 少し余裕を持たせる
           maxWidth: "1400px", // 画面が広がりすぎないように制限
+          background:
+            "linear-gradient(135deg,#f5f3ff 0%,#eef2ff 100%)",
           margin: "0 auto",
           fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
         }}
