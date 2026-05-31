@@ -162,10 +162,12 @@ export default function LearningSection() {
 
       <div
         style={{
-          padding: "40px", // 少し余裕を持たせる
-          maxWidth: "1400px", // 画面が広がりすぎないように制限
-          margin: "0 auto",
-          fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
+          minHeight: "100vh",
+          background:
+            "linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%)",
+          padding: "20px",
+          fontFamily:
+            "'Inter', 'Noto Sans JP', sans-serif",
         }}
       >
 
