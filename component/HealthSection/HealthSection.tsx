@@ -10,6 +10,8 @@ import ActivityLog from "./ActivityLog";
 import BalanceChart from "./BalanceChart";
 import JournalSection from "./JournalSection";
 
+import Layout from "../layout/Layout";
+
 
 export default function HealthSection() {
 
@@ -129,7 +131,7 @@ export default function HealthSection() {
 
     
   return (
-  
+    <Layout currentPage="健康と日記">
       <div
         style={{
           minHeight: "100vh",
@@ -255,6 +257,7 @@ export default function HealthSection() {
         </div>
   
       </div>
+    </Layout>
   );
 
 }
