@@ -4,6 +4,9 @@ type Health = {
   id: string;
   date: string;
   steps: number;
+  sleepHours: number;
+  exerciseMinutes: number;
+  waterMl: number;
 };
 
 type Props = {
@@ -14,14 +17,10 @@ export default function DashboardCard({
   healths,
 }: Props) {
 
-  console.log("healths", healths);
-
   const today =
     new Date()
       .toISOString()
       .split("T")[0];
-
-  // 今日の歩数
 
   const todayHealth =
     healths.find(
@@ -31,33 +30,14 @@ export default function DashboardCard({
   const todaySteps =
     todayHealth?.steps || 0;
 
-  // 今週平均
+  const todaySleep =
+    todayHealth?.sleepHours || 0;
 
-  const last7 =
-  [...healths]
-    .filter(
-      (h) => h?.date
-    )
-    .sort((a, b) =>
-      String(a.date)
-        .localeCompare(
-          String(b.date)
-        )
-    )
-    .slice(-7);
+  const todayExercise =
+    todayHealth?.exerciseMinutes || 0;
 
-  const averageSteps =
-    last7.length === 0
-      ? 0
-      : Math.round(
-          last7.reduce(
-            (sum, h) =>
-              sum + (h.steps || 0),
-            0
-          ) / last7.length
-        );
-
-  // 連続記録
+  const todayWater =
+    todayHealth?.waterMl || 0;
 
   const streak =
     calculateStreak(
@@ -70,23 +50,29 @@ export default function DashboardCard({
       style={{
         display: "grid",
         gridTemplateColumns:
-          "repeat(3,1fr)",
-        gap: "20px",
+          "repeat(4,1fr)",
+        gap: "24px",
+        marginBottom: "24px",
       }}
     >
 
       <Card
-        title="🚶 今日の歩数"
-        value={`${todaySteps} 歩`}
+        title="👣 今日の歩数"
+        value={`${todaySteps.toLocaleString()} 歩`}
       />
 
       <Card
-        title="📈 今週平均"
-        value={`${averageSteps} 歩`}
+        title="😴 睡眠"
+        value={`${todaySleep} h`}
       />
 
       <Card
-        title="🔥 連続記録"
+        title="🏃 運動"
+        value={`${todayExercise} 分`}
+      />
+
+      <Card
+        title="🔥 継続日数"
         value={`${streak} 日`}
       />
 
@@ -95,7 +81,7 @@ export default function DashboardCard({
 }
 
 // =========================
-// Card
+// KPI Card
 // =========================
 
 function Card({
@@ -110,17 +96,20 @@ function Card({
 
     <div
       style={{
-        background: "#fff",
-        borderRadius: "20px",
-        padding: "24px",
-        textAlign: "center",
+        background: "#ffffff",
+        borderRadius: "30px",
+        padding: "28px",
+        boxShadow:
+          "0 10px 30px rgba(0,0,0,0.05)",
       }}
     >
 
       <div
         style={{
+          fontSize: "15px",
           color: "#64748b",
-          fontSize: "14px",
+          marginBottom: "14px",
+          fontWeight: 500,
         }}
       >
         {title}
@@ -128,9 +117,9 @@ function Card({
 
       <div
         style={{
-          fontSize: "32px",
-          fontWeight: "bold",
-          marginTop: "12px",
+          fontSize: "42px",
+          fontWeight: 700,
+          color: "#1e1b4b",
         }}
       >
         {value}
@@ -141,7 +130,7 @@ function Card({
 }
 
 // =========================
-// 連続記録計算
+// 連続記録
 // =========================
 
 function calculateStreak(

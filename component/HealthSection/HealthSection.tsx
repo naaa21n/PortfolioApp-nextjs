@@ -10,6 +10,7 @@ import ActivityLog from "./ActivityLog";
 import BalanceChart from "./BalanceChart";
 import JournalSection from "./JournalSection";
 
+
 export default function HealthSection() {
 
   // =========================
@@ -127,87 +128,133 @@ export default function HealthSection() {
   };
 
     
-
   return (
-
-    <div>
-
-      {/* 上部カード */}
-      <DashboardCard
-        healths={healths}
-      />
-
-      {/* カレンダー＋フォーム */}
+  
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns:
-            "1fr 1fr",
-          gap: "20px",
-          marginTop: "20px",
+          minHeight: "100vh",
+          background:
+            "linear-gradient(135deg,#f5f3ff 0%,#eef2ff 100%)",
+          padding: "20px",
+          fontFamily:
+            "'Inter','Noto Sans JP',sans-serif",
         }}
       >
-
-        <StepCalendar
+  
+        {/* Header */}
+  
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
+            marginBottom: "24px",
+          }}
+        >
+  
+          <div>
+  
+            <h1
+              style={{
+                fontSize: "48px",
+                fontWeight: "bold",
+                color: "#1e1b4b",
+                marginBottom: "8px",
+              }}
+            >
+              ❤️ 健康と日記
+            </h1>
+  
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+              }}
+            >
+              毎日の健康習慣を記録して、
+              理想の自分に近づこう。
+            </p>
+  
+          </div>
+  
+        </div>
+  
+        {/* 上部カード */}
+  
+        <DashboardCard
           healths={healths}
-          selectedDate={selectedDate}
-          onDateSelect={selectDate}
         />
-
-        <HealthForm
-          selectedDate={
-            selectedDate
-          }
-          selectedHealth={
-            selectedHealth
-          }
-          onSaved={
-            loadHealths
-          }
-        />
-
+  
+        {/* カレンダー＋フォーム */}
+  
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "1fr 1fr",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+  
+          <StepCalendar
+            healths={healths}
+            selectedDate={selectedDate}
+            onDateSelect={selectDate}
+          />
+  
+          <HealthForm
+            selectedDate={selectedDate}
+            selectedHealth={selectedHealth}
+            onSaved={loadHealths}
+          />
+  
+        </div>
+  
+        {/* 円グラフ＋行動ログ */}
+  
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "1fr 1fr",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+  
+          <BalanceChart
+            activity={selectedActivity}
+          />
+  
+          <ActivityLog
+            selectedDate={selectedDate}
+            selectedActivity={selectedActivity}
+            reloadActivities={loadActivities}
+          />
+  
+        </div>
+  
+        {/* 日記＋ジャーナル */}
+  
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "1fr 1fr",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+  
+          <DiaryList />
+  
+          <JournalSection />
+  
+        </div>
+  
       </div>
-
-      {/* 円グラフ＋行動ログ */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "1fr 1fr",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-
-        <BalanceChart
-          activity={selectedActivity}
-        />
-
-        <ActivityLog
-          selectedDate={selectedDate}
-          selectedActivity={selectedActivity}
-          reloadActivities={loadActivities}
-        />
-
-      </div>
-
-      {/* 日記＋ジャーナリング */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "1fr 1fr",
-          gap: "20px",
-          marginTop: "20px",
-        }}
-      >
-
-        <DiaryList />
-
-        <JournalSection />
-
-      </div>
-
-    </div>
   );
+
 }
