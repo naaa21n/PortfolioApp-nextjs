@@ -3,7 +3,7 @@
 // =========================
 // Learning Section Import
 // =========================
-import LearningSection from "../components/LearningSection";
+import LearningSection from "../../component/LearningSection";
 
 // =========================
 // Learnings Page

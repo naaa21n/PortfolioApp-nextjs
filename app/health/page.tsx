@@ -1,5 +1,9 @@
-import HealthDashboard from "../components/health/HealthDashboard";
+import HealthSection
+from "@/component/HealthSection/HealthSection";
 
 export default function Page() {
-  return <HealthDashboard />;
+
+  return (
+    <HealthSection />
+  );
 }

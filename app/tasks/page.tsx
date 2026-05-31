@@ -3,7 +3,7 @@
 // =========================
 //
 // タスク管理コンポーネント読込
-import TaskSection from "../components/TaskSection";
+import TaskSection from "../../component/TaskSection";
 
 // =========================
 // Tasks Page

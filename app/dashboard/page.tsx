@@ -7,7 +7,7 @@
 // ・サイドバー
 // ・背景
 // ・ページ共通UI
-import Layout from "../components/layout/Layout";
+import Layout from "../../component/layout/Layout";
 
 // =========================
 // Dashboard Card Import
@@ -20,7 +20,7 @@ import Layout from "../components/layout/Layout";
 // ・リンク
 // ・絵文字
 import DashboardCard
-from "../components/DashboardCard";
+from "../../component/DashboardCard";
 
 // =========================
 // Dashboard Page
