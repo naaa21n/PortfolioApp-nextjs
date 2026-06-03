@@ -26,12 +26,30 @@ type CalendarDay = {
   dateKey: string | null;
 };
 
+type GraphMode = "learning" | "book" | "all";
+type ActiveTab = "learning" | "book";
+
+const STUDY_COLOR = "#8b5cf6";
+const BOOK_COLOR = "#22d3ee";
+
+const JAPANESE_WEEK_DAYS = [
+  "日",
+  "月",
+  "火",
+  "水",
+  "木",
+  "金",
+  "土",
+];
+
 export default function LearningSection() {
+  const todayDateKey = toDateKey(new Date());
+
   const [learnings, setLearnings] = useState<Learning[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"learning" | "book">(
-    "learning"
-  );
+  const [activeTab, setActiveTab] = useState<ActiveTab>("learning");
+
+  const [graphMode, setGraphMode] = useState<GraphMode>("all");
 
   const [studyTitle, setStudyTitle] = useState("");
   const [studyHours, setStudyHours] = useState("");
@@ -41,8 +59,12 @@ export default function LearningSection() {
   const [bookTime, setBookTime] = useState("");
   const [bookDate, setBookDate] = useState("");
 
-  const [calendarMonth, setCalendarMonth] = useState("2025-06");
-  const [graphStartDate, setGraphStartDate] = useState("2025-06-16");
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    toMonthKey(new Date())
+  );
+
+  const [graphDisplayDate, setGraphDisplayDate] =
+    useState("2025-06-16");
 
   const [books, setBooks] = useState<Book[]>([
     {
@@ -206,9 +228,9 @@ export default function LearningSection() {
     learnings.length > 0 ? learnings : sampleLearnings;
 
   const weekGraphData = Array.from({ length: 7 }).map((_, index) => {
-    const dateKey = addDaysToDateKey(graphStartDate, index);
+    const dateKey = addDaysToDateKey(graphDisplayDate, index - 6);
 
-    const totalHours = displayLearnings.reduce((total, item) => {
+    const studyHoursTotal = displayLearnings.reduce((total, item) => {
       const itemDateKey = normalizeDateKey(item.studyDate);
 
       if (itemDateKey !== dateKey) {
@@ -218,19 +240,34 @@ export default function LearningSection() {
       return total + Number(item.studyHours || 0);
     }, 0);
 
+    const bookHoursTotal = books.reduce((total, book) => {
+      const bookDateKey = normalizeDateKey(book.readDate);
+
+      if (bookDateKey !== dateKey) {
+        return total;
+      }
+
+      return total + parseBookTimeToHours(book.time);
+    }, 0);
+
     return {
       dateKey,
       studyDate: formatShortDate(dateKey),
-      studyHours: totalHours,
+      weekDay: formatWeekDay(dateKey),
+      studyHours: Number(studyHoursTotal.toFixed(2)),
+      bookHours: Number(bookHoursTotal.toFixed(2)),
     };
   });
 
   const maxGraphHours = Math.max(
-    ...weekGraphData.map((item) => item.studyHours),
+    ...weekGraphData.flatMap((item) => [
+      item.studyHours,
+      item.bookHours,
+    ]),
     1
   );
 
-  const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+  const weekDays = JAPANESE_WEEK_DAYS;
 
   const calendarDays = createCalendarDays(calendarMonth);
 
@@ -245,8 +282,6 @@ export default function LearningSection() {
       .map((book) => normalizeDateKey(book.readDate))
       .filter(Boolean)
   );
-
-  const highlightedDateKey = "2025-06-20";
 
   return (
     <Layout currentPage="学習と読書の記録">
@@ -333,7 +368,7 @@ export default function LearningSection() {
             }}
           >
             {/* 入力フォーム */}
-            <div style={formCardStyle}>
+            <div style={formCardStyle(activeTab)}>
               <div
                 style={{
                   display: "flex",
@@ -356,8 +391,14 @@ export default function LearningSection() {
 
                 <span
                   style={{
-                    background: "#eef2ff",
-                    color: "#6366f1",
+                    background:
+                      activeTab === "book"
+                        ? "#ecfeff"
+                        : "#eef2ff",
+                    color:
+                      activeTab === "book"
+                        ? "#0891b2"
+                        : "#6366f1",
                     borderRadius: "999px",
                     padding: "6px 10px",
                     fontSize: "12px",
@@ -373,7 +414,10 @@ export default function LearningSection() {
               <div
                 style={{
                   display: "flex",
-                  background: "#ede9fe",
+                  background:
+                    activeTab === "book"
+                      ? "#cffafe"
+                      : "#ede9fe",
                   borderRadius: "16px",
                   padding: "5px",
                   marginBottom: "18px",
@@ -412,7 +456,7 @@ export default function LearningSection() {
                     color: activeTab === "book" ? "#fff" : "#64748b",
                     background:
                       activeTab === "book"
-                        ? "linear-gradient(to right,#7c3aed,#6366f1)"
+                        ? "linear-gradient(to right,#06b6d4,#22d3ee)"
                         : "transparent",
                   }}
                 >
@@ -423,40 +467,46 @@ export default function LearningSection() {
               {activeTab === "learning" && (
                 <>
                   <div style={{ marginBottom: "14px" }}>
-                    <label style={labelStyle}>学習内容</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      学習内容
+                    </label>
                     <input
                       value={studyTitle}
                       onChange={(e) => setStudyTitle(e.target.value)}
                       placeholder="例：React学習"
-                      style={inputStyle}
+                      style={formInputStyle(activeTab)}
                     />
                   </div>
 
                   <div style={{ marginBottom: "14px" }}>
-                    <label style={labelStyle}>学習時間</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      学習時間
+                    </label>
                     <input
                       type="number"
                       value={studyHours}
                       onChange={(e) => setStudyHours(e.target.value)}
                       placeholder="例：2"
-                      style={inputStyle}
+                      style={formInputStyle(activeTab)}
                     />
                   </div>
 
                   <div style={{ marginBottom: "18px" }}>
-                    <label style={labelStyle}>学習日</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      学習日
+                    </label>
                     <input
                       type="date"
                       value={studyDate}
                       onChange={(e) => setStudyDate(e.target.value)}
-                      style={inputStyle}
+                      style={formInputStyle(activeTab, Boolean(studyDate))}
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={addLearning}
-                    style={submitButtonStyle}
+                    style={submitButtonStyle(activeTab)}
                   >
                     ＋ 学習を追加
                   </button>
@@ -466,40 +516,46 @@ export default function LearningSection() {
               {activeTab === "book" && (
                 <>
                   <div style={{ marginBottom: "14px" }}>
-                    <label style={labelStyle}>本のタイトル</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      本のタイトル
+                    </label>
                     <input
                       value={bookTitle}
                       onChange={(e) => setBookTitle(e.target.value)}
                       placeholder="例：7つの習慣"
-                      style={inputStyle}
+                      style={formInputStyle(activeTab)}
                     />
                   </div>
 
                   <div style={{ marginBottom: "14px" }}>
-                    <label style={labelStyle}>読書時間</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      読書時間
+                    </label>
                     <input
                       type="number"
                       value={bookTime}
                       onChange={(e) => setBookTime(e.target.value)}
                       placeholder="例：60"
-                      style={inputStyle}
+                      style={formInputStyle(activeTab)}
                     />
                   </div>
 
                   <div style={{ marginBottom: "18px" }}>
-                    <label style={labelStyle}>読書日</label>
+                    <label style={formLabelStyle(activeTab)}>
+                      読書日
+                    </label>
                     <input
                       type="date"
                       value={bookDate}
                       onChange={(e) => setBookDate(e.target.value)}
-                      style={inputStyle}
+                      style={formInputStyle(activeTab, Boolean(bookDate))}
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={addBook}
-                    style={submitButtonStyle}
+                    style={submitButtonStyle(activeTab)}
                   >
                     ＋ 読書を追加
                   </button>
@@ -527,7 +583,7 @@ export default function LearningSection() {
                   marginTop: 0,
                 }}
               >
-                学習時間の記録
+                学習・読書時間の記録
               </h2>
 
               <div
@@ -536,7 +592,7 @@ export default function LearningSection() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   gap: "12px",
-                  marginBottom: "14px",
+                  marginBottom: "12px",
                   flexWrap: "wrap",
                 }}
               >
@@ -550,13 +606,13 @@ export default function LearningSection() {
                       marginBottom: "6px",
                     }}
                   >
-                    表示開始日
+                    表示日
                   </label>
 
                   <input
                     type="date"
-                    value={graphStartDate}
-                    onChange={(e) => setGraphStartDate(e.target.value)}
+                    value={graphDisplayDate}
+                    onChange={(e) => setGraphDisplayDate(e.target.value)}
                     style={dateInputStyle}
                   />
                 </div>
@@ -573,28 +629,129 @@ export default function LearningSection() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {formatGraphRange(graphStartDate)}
+                  {formatGraphRange(graphDisplayDate)}
                 </div>
+              </div>
+
+              {/* 表示切り替え */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  marginBottom: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setGraphMode("learning")}
+                  style={graphModeButtonStyle(
+                    graphMode === "learning",
+                    STUDY_COLOR
+                  )}
+                >
+                  学習
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setGraphMode("book")}
+                  style={graphModeButtonStyle(
+                    graphMode === "book",
+                    BOOK_COLOR
+                  )}
+                >
+                  読書
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setGraphMode("all")}
+                  style={graphModeButtonStyle(
+                    graphMode === "all",
+                    "#6366f1"
+                  )}
+                >
+                  すべて
+                </button>
+              </div>
+
+              {/* 凡例 */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                  color: "#64748b",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                {(graphMode === "learning" || graphMode === "all") && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "9px",
+                        height: "9px",
+                        borderRadius: "999px",
+                        background: STUDY_COLOR,
+                      }}
+                    />
+                    学習
+                  </div>
+                )}
+
+                {(graphMode === "book" || graphMode === "all") && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "9px",
+                        height: "9px",
+                        borderRadius: "999px",
+                        background: BOOK_COLOR,
+                      }}
+                    />
+                    読書
+                  </div>
+                )}
               </div>
 
               <div
                 style={{
-                  height: "210px",
+                  height: "205px",
                   display: "flex",
                   alignItems: "flex-end",
-                  gap: "clamp(8px, 1.2vw, 18px)",
-                  padding: "8px 2px 0",
+                  gap:
+                    graphMode === "all"
+                      ? "clamp(5px, 0.8vw, 10px)"
+                      : "clamp(8px, 1.2vw, 18px)",
+                  padding: "6px 2px 0",
                   minWidth: 0,
                 }}
               >
                 {weekGraphData.map((item) => {
-                  const height =
-                    item.studyHours === 0
-                      ? 8
-                      : Math.max(
-                          14,
-                          (item.studyHours / maxGraphHours) * 155
-                        );
+                  const studyHeight = getGraphBarHeight(
+                    item.studyHours,
+                    maxGraphHours
+                  );
+
+                  const bookHeight = getGraphBarHeight(
+                    item.bookHours,
+                    maxGraphHours
+                  );
 
                   return (
                     <div
@@ -604,24 +761,89 @@ export default function LearningSection() {
                         minWidth: 0,
                       }}
                     >
-                      <div
-                        style={{
-                          height: `${height}px`,
-                          maxHeight: "155px",
-                          borderRadius: "18px 18px 0 0",
-                          background:
-                            item.studyHours === 0
-                              ? "#e2e8f0"
-                              : "linear-gradient(to top,#22d3ee,#8b5cf6)",
-                        }}
-                      />
+                      {graphMode === "all" ? (
+                        <div
+                          style={{
+                            height: "135px",
+                            display: "flex",
+                            alignItems: "flex-end",
+                            justifyContent: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <div
+                            title={`学習 ${formatHoursLabel(
+                              item.studyHours
+                            )}`}
+                            style={{
+                              width: "38%",
+                              maxWidth: "14px",
+                              minWidth: "6px",
+                              height: `${studyHeight}px`,
+                              borderRadius: "12px 12px 0 0",
+                              background:
+                                item.studyHours === 0
+                                  ? "#e2e8f0"
+                                  : STUDY_COLOR,
+                            }}
+                          />
+
+                          <div
+                            title={`読書 ${formatHoursLabel(
+                              item.bookHours
+                            )}`}
+                            style={{
+                              width: "38%",
+                              maxWidth: "14px",
+                              minWidth: "6px",
+                              height: `${bookHeight}px`,
+                              borderRadius: "12px 12px 0 0",
+                              background:
+                                item.bookHours === 0
+                                  ? "#e2e8f0"
+                                  : BOOK_COLOR,
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            height: "135px",
+                            display: "flex",
+                            alignItems: "flex-end",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "55%",
+                              maxWidth: "26px",
+                              minWidth: "10px",
+                              height: `${
+                                graphMode === "learning"
+                                  ? studyHeight
+                                  : bookHeight
+                              }px`,
+                              borderRadius: "14px 14px 0 0",
+                              background:
+                                graphMode === "learning"
+                                  ? item.studyHours === 0
+                                    ? "#e2e8f0"
+                                    : STUDY_COLOR
+                                  : item.bookHours === 0
+                                  ? "#e2e8f0"
+                                  : BOOK_COLOR,
+                            }}
+                          />
+                        </div>
+                      )}
 
                       <div
                         style={{
                           textAlign: "center",
-                          marginTop: "8px",
+                          marginTop: "7px",
                           color: "#64748b",
-                          fontSize: "12px",
+                          fontSize: "11px",
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -631,14 +853,52 @@ export default function LearningSection() {
                       <div
                         style={{
                           textAlign: "center",
-                          marginTop: "3px",
-                          color: "#6366f1",
-                          fontSize: "11px",
+                          marginTop: "2px",
+                          color: "#94a3b8",
+                          fontSize: "10px",
                           fontWeight: "bold",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {item.studyHours}h
+                        {item.weekDay}
                       </div>
+
+                      {graphMode === "all" ? (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            marginTop: "2px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            lineHeight: 1.25,
+                          }}
+                        >
+                          <span style={{ color: STUDY_COLOR }}>
+                            {formatHoursLabel(item.studyHours)}
+                          </span>
+                          <br />
+                          <span style={{ color: BOOK_COLOR }}>
+                            {formatHoursLabel(item.bookHours)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            marginTop: "2px",
+                            color:
+                              graphMode === "learning"
+                                ? STUDY_COLOR
+                                : BOOK_COLOR,
+                            fontSize: "11px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {graphMode === "learning"
+                            ? formatHoursLabel(item.studyHours)
+                            : formatHoursLabel(item.bookHours)}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -741,9 +1001,11 @@ export default function LearningSection() {
                   const day = calendarDay.day;
                   const dateKey = calendarDay.dateKey;
 
-                  const isToday = dateKey === highlightedDateKey;
+                  const isToday = dateKey === todayDateKey;
+
                   const hasStudy =
                     dateKey !== null && studyMarkedDateKeys.has(dateKey);
+
                   const hasBook =
                     dateKey !== null && bookMarkedDateKeys.has(dateKey);
 
@@ -753,20 +1015,18 @@ export default function LearningSection() {
                       style={{
                         minHeight: "40px",
                         borderRadius: "14px",
-                        background: isToday
-                          ? "linear-gradient(135deg,#8b5cf6,#6366f1)"
-                          : day
-                          ? "#ffffff"
-                          : "transparent",
+                        background: day ? "#ffffff" : "transparent",
                         border: day
-                          ? "1px solid #e2e8f0"
+                          ? isToday
+                            ? `2px solid ${STUDY_COLOR}`
+                            : "1px solid #e2e8f0"
                           : "1px solid transparent",
-                        boxShadow: isToday
-                          ? "0 10px 18px rgba(99,102,241,0.24)"
-                          : day
-                          ? "0 4px 10px rgba(15,23,42,0.04)"
+                        boxShadow: day
+                          ? isToday
+                            ? "0 0 0 4px rgba(139,92,246,0.10)"
+                            : "0 4px 10px rgba(15,23,42,0.04)"
                           : "none",
-                        color: isToday ? "#fff" : "#334155",
+                        color: "#334155",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -775,6 +1035,7 @@ export default function LearningSection() {
                         fontWeight: "bold",
                         minWidth: 0,
                         padding: "4px 0",
+                        boxSizing: "border-box",
                       }}
                     >
                       <span
@@ -800,7 +1061,7 @@ export default function LearningSection() {
                                 width: "6px",
                                 height: "6px",
                                 borderRadius: "999px",
-                                background: isToday ? "#fff" : "#8b5cf6",
+                                background: STUDY_COLOR,
                               }}
                             />
                           )}
@@ -811,7 +1072,7 @@ export default function LearningSection() {
                                 width: "6px",
                                 height: "6px",
                                 borderRadius: "999px",
-                                background: isToday ? "#dbeafe" : "#22d3ee",
+                                background: BOOK_COLOR,
                               }}
                             />
                           )}
@@ -849,7 +1110,7 @@ export default function LearningSection() {
                       width: "9px",
                       height: "9px",
                       borderRadius: "999px",
-                      background: "#8b5cf6",
+                      background: STUDY_COLOR,
                     }}
                   />
                   学習
@@ -870,7 +1131,7 @@ export default function LearningSection() {
                       width: "9px",
                       height: "9px",
                       borderRadius: "999px",
-                      background: "#22d3ee",
+                      background: BOOK_COLOR,
                     }}
                   />
                   読書
@@ -977,7 +1238,7 @@ export default function LearningSection() {
 
                         <div
                           style={{
-                            color: "#6366f1",
+                            color: STUDY_COLOR,
                             fontSize: "12px",
                             fontWeight: "bold",
                           }}
@@ -1079,6 +1340,7 @@ export default function LearningSection() {
                             fontWeight: "bold",
                             marginBottom: "2px",
                             fontSize: "13px",
+                            color: "#1e293b",
                             wordBreak: "break-word",
                           }}
                         >
@@ -1087,7 +1349,7 @@ export default function LearningSection() {
 
                         <div
                           style={{
-                            color: "#6366f1",
+                            color: BOOK_COLOR,
                             fontSize: "12px",
                           }}
                         >
@@ -1160,6 +1422,13 @@ const toDateKey = (date: Date) => {
   return `${year}-${pad2(month)}-${pad2(day)}`;
 };
 
+const toMonthKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  return `${year}-${pad2(month)}`;
+};
+
 const addDaysToDateKey = (dateKey: string, days: number) => {
   const date = createDateFromKey(dateKey);
   date.setDate(date.getDate() + days);
@@ -1173,17 +1442,23 @@ const formatShortDate = (dateKey: string) => {
   return `${Number(monthText)}/${Number(dayText)}`;
 };
 
+const formatWeekDay = (dateKey: string) => {
+  const date = createDateFromKey(dateKey);
+
+  return JAPANESE_WEEK_DAYS[date.getDay()];
+};
+
 const formatJapaneseDate = (dateKey: string) => {
   const [yearText, monthText, dayText] = dateKey.split("-");
 
   return `${yearText}年${Number(monthText)}月${Number(dayText)}日`;
 };
 
-const formatGraphRange = (startDateKey: string) => {
-  const endDateKey = addDaysToDateKey(startDateKey, 6);
+const formatGraphRange = (displayDateKey: string) => {
+  const startDateKey = addDaysToDateKey(displayDateKey, -6);
 
   return `${formatJapaneseDate(startDateKey)}〜${formatJapaneseDate(
-    endDateKey
+    displayDateKey
   )}`;
 };
 
@@ -1228,35 +1503,103 @@ const createCalendarDays = (monthValue: string): CalendarDay[] => {
   });
 };
 
-const formCardStyle: React.CSSProperties = {
+const parseBookTimeToHours = (timeText: string) => {
+  const text = String(timeText).trim();
+
+  const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*時間/);
+  const minuteMatch = text.match(/(\d+(?:\.\d+)?)\s*分/);
+
+  let totalMinutes = 0;
+
+  if (hourMatch) {
+    totalMinutes += Number(hourMatch[1]) * 60;
+  }
+
+  if (minuteMatch) {
+    totalMinutes += Number(minuteMatch[1]);
+  }
+
+  if (!hourMatch && !minuteMatch) {
+    const numericValue = Number(text.replace(/[^\d.]/g, ""));
+
+    if (!Number.isNaN(numericValue)) {
+      totalMinutes = numericValue;
+    }
+  }
+
+  return Number((totalMinutes / 60).toFixed(2));
+};
+
+const formatHoursLabel = (hours: number) => {
+  if (hours === 0) {
+    return "0h";
+  }
+
+  if (Number.isInteger(hours)) {
+    return `${hours}h`;
+  }
+
+  return `${hours.toFixed(1)}h`;
+};
+
+const getGraphBarHeight = (value: number, maxValue: number) => {
+  if (value === 0) {
+    return 8;
+  }
+
+  return Math.max(12, (value / maxValue) * 125);
+};
+
+const formCardStyle = (
+  activeTab: ActiveTab
+): React.CSSProperties => ({
   background:
-    "linear-gradient(180deg,#fbfaff 0%,#f5f3ff 100%)",
+    activeTab === "book"
+      ? "linear-gradient(180deg,#f0fdff 0%,#ecfeff 100%)"
+      : "linear-gradient(180deg,#fbfaff 0%,#f5f3ff 100%)",
   borderRadius: "24px",
   padding: "22px",
-  boxShadow: "0 14px 32px rgba(99,102,241,0.12)",
-  border: "1px solid #ddd6fe",
+  boxShadow:
+    activeTab === "book"
+      ? "0 14px 32px rgba(34,211,238,0.14)"
+      : "0 14px 32px rgba(99,102,241,0.12)",
+  border:
+    activeTab === "book"
+      ? "1px solid #bae6fd"
+      : "1px solid #ddd6fe",
   minWidth: 0,
   boxSizing: "border-box",
-};
+});
 
-const labelStyle: React.CSSProperties = {
+const formLabelStyle = (
+  activeTab: ActiveTab
+): React.CSSProperties => ({
   display: "block",
   fontWeight: "bold",
-  color: "#475569",
+  color: activeTab === "book" ? "#0e7490" : "#5b21b6",
   marginBottom: "6px",
   fontSize: "14px",
-};
+});
 
-const inputStyle: React.CSSProperties = {
+const formInputStyle = (
+  activeTab: ActiveTab,
+  hasValue = true
+): React.CSSProperties => ({
   width: "100%",
   padding: "12px 14px",
   borderRadius: "12px",
-  border: "1px solid #ddd6fe",
+  border:
+    activeTab === "book"
+      ? "1px solid #67e8f9"
+      : "1px solid #c4b5fd",
   outline: "none",
   fontSize: "14px",
+  fontWeight: 600,
   boxSizing: "border-box",
   background: "#ffffff",
-};
+  color: hasValue ? "#0f172a" : "#94a3b8",
+  caretColor: activeTab === "book" ? "#0891b2" : "#7c3aed",
+});
 
 const dateInputStyle: React.CSSProperties = {
   padding: "9px 12px",
@@ -1264,22 +1607,46 @@ const dateInputStyle: React.CSSProperties = {
   border: "1px solid #ddd6fe",
   outline: "none",
   fontSize: "13px",
+  fontWeight: 600,
   boxSizing: "border-box",
-  color: "#334155",
+  color: "#0f172a",
   background: "#fff",
+  caretColor: "#7c3aed",
 };
 
-const submitButtonStyle: React.CSSProperties = {
+const submitButtonStyle = (
+  activeTab: ActiveTab
+): React.CSSProperties => ({
   width: "100%",
   border: "none",
-  background: "linear-gradient(to right,#7c3aed,#6366f1)",
+  background:
+    activeTab === "book"
+      ? "linear-gradient(to right,#06b6d4,#22d3ee)"
+      : "linear-gradient(to right,#7c3aed,#6366f1)",
   color: "#fff",
   padding: "13px 18px",
   borderRadius: "14px",
   fontWeight: "bold",
   fontSize: "15px",
   cursor: "pointer",
-};
+});
+
+const graphModeButtonStyle = (
+  active: boolean,
+  activeColor: string
+): React.CSSProperties => ({
+  border: active ? "none" : "1px solid #e2e8f0",
+  background: active ? activeColor : "#fff",
+  color: active ? "#fff" : "#64748b",
+  borderRadius: "999px",
+  padding: "7px 12px",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "bold",
+  boxShadow: active
+    ? "0 8px 16px rgba(99,102,241,0.16)"
+    : "none",
+});
 
 const compactDeleteButtonStyle: React.CSSProperties = {
   border: "none",
