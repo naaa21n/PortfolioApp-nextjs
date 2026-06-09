@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 
 import Layout from "./layout/Layout";
+import { apiFetch } from "./lib/api";
 
 type Learning = {
   id: string;
@@ -136,7 +137,8 @@ export default function LearningSection() {
 
   const loadLearnings = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/learnings");
+      // 共通API関数を使って学習記録を取得する
+      const res = await apiFetch("/api/learnings");
       const data = await res.json();
 
       setLearnings(Array.isArray(data) ? data : []);
@@ -152,11 +154,14 @@ export default function LearningSection() {
     }
 
     try {
-      await fetch("http://localhost:8080/api/learnings", {
+      // 共通API関数を使って学習記録を追加する
+      // Content-Type は apiFetch 側で自動設定されるため、ここでは headers を書かない
+      await apiFetch("/api/learnings", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        //共通化で記載されたため
+        //headers: {
+        //  "Content-Type": "application/json",
+        //},
         body: JSON.stringify({
           id: String(Date.now()),
           title: studyTitle,
@@ -199,7 +204,8 @@ export default function LearningSection() {
 
   const deleteLearning = async (id: string) => {
     try {
-      await fetch("http://localhost:8080/api/learnings/" + id, {
+      // 共通API関数を使って指定IDの学習記録を削除する
+      await apiFetch(`/api/learnings/${id}`, {
         method: "DELETE",
       });
 
