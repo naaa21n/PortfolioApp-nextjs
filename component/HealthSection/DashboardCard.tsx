@@ -1,7 +1,7 @@
 "use client";
 
 // 型のインポート
-import { Health } from "../types/helth"
+import { Health } from "../types/health"
 
 /*
 type Health = {

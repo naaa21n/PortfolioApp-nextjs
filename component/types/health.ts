@@ -1,6 +1,7 @@
 // types/health.ts
 
 // 型定義を共通ファイルとする
+// 健康用
 export type Health = {
   id: string;
   date: string;
@@ -10,7 +11,14 @@ export type Health = {
   waterMl: number;
 };
 
+// Health型の一部をカレンダー用に使用するため型定義
+export type CalendarHealth = Pick<
+  Health,
+  "id" | "date" | "steps"
+>;
+
 // **これは修正が必要かも
+// アクティビティ用
 export type Activity = {
   id: string;
   date: string;
@@ -22,10 +30,19 @@ export type Activity = {
   other: number;
 };
 
-// **これは修正必要かも
+// ジャーナル用
 export type Journal = {
   id: string;
   date: string;
-  title?: string;
-  content?: string;
+  gratitude: string;
+  achievement: string;
+  tomorrowGoal: string;
+  freeText: string;
+};
+
+// ダイアリー用
+export type Diary = {
+  id: string;
+  date: string;
+  content: string;
 };

@@ -6,7 +6,7 @@ import type {
   Health,
   Activity,
   Journal,
-} from "../types/helth"; // 型インポート
+} from "../types/health"; // 型インポート
 
 import DashboardCard from "./DashboardCard";
 import StepCalendar from "./StepCalendar";
@@ -62,7 +62,6 @@ export default function HealthSection() {
   const [activities, setActivities] =
     useState<Activity[]>([]);
 
-  // これ使用してなさそう
   const [journals, setJournals] =
     useState<Journal[]>([]);
 
@@ -72,9 +71,14 @@ export default function HealthSection() {
   const [selectedHealth, setSelectedHealth] =
     useState<Health | null>(null);
 
+  const selectedJournal =
+    journals.find(
+      (j) => j.date === selectedDate
+    ) || null;
+
   const selectedActivity =
     activities.find(
-      (a: any) =>
+      (a) =>
         a.date === selectedDate
     ) || null;
 
@@ -275,7 +279,11 @@ export default function HealthSection() {
   
           <DiaryList />
   
-          <JournalSection />
+          <JournalSection
+            selectedDate={selectedDate}
+            selectedJournal={selectedJournal}
+            onSaved={loadJournals}
+          />
   
         </div>
   

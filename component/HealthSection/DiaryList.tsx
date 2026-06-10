@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { Diary } from "../types/health"
 
+/*
 type Diary = {
   id: string;
   date: string;
   content: string;
 };
+*/
 
 export default function DiaryList() {
 

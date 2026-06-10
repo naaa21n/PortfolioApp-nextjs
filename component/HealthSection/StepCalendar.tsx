@@ -1,5 +1,7 @@
 "use client";
 
+import type { CalendarHealth } from "../types/health";
+
 // この型は共通型にあるHealthとは違う意味かも？
 // 詳細は../types/helth.tsを確認
 type Health = {
@@ -13,7 +15,7 @@ type Props = {
     onDateSelect: (
       date: string
     ) => void;
-    healths: Health[];
+    healths: CalendarHealth[];
 };
 
 export default function StepCalendar({

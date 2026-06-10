@@ -5,7 +5,7 @@ import {
     useState,
   } from "react";
 import { apiFetch } from "../lib/api";
-import { Health } from "../types/helth" // 型インポート
+import { Health } from "../types/health" // 型インポート
 
 /*
 type Health = {

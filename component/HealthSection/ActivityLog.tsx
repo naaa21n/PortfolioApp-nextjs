@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "../lib/api";
-import { Activity } from "../types/helth" // 型インポート
+import { Activity } from "../types/health" // 型インポート
 
 type Props = {
   selectedDate: string;
