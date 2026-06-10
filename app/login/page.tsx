@@ -9,6 +9,7 @@ import Link from "next/link";
 
 // React State管理
 import { useState } from "react";
+import { apiFetch } from "@/component/lib/api";
 
 // =========================
 // Login Page
@@ -37,17 +38,17 @@ export default function LoginPage() {
   const handleLogin = async () => {
 
     // Spring Boot APIへPOST通信
-    const response = await fetch(
-      "http://localhost:8080/api/auth/login",
+    const response = await apiFetch(
+      "/api/auth/login",
       {
 
         // HTTP Method
         method: "POST",
 
         // Header
-        headers: {
-          "Content-Type": "application/json",
-        },
+        //headers: {
+        //  "Content-Type": "application/json",
+        //},
 
         // JSON Body
         body: JSON.stringify({

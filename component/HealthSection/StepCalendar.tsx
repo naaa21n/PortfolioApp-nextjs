@@ -1,6 +1,7 @@
 "use client";
 
-
+// この型は共通型にあるHealthとは違う意味かも？
+// 詳細は../types/helth.tsを確認
 type Health = {
     id: string;
     date: string;
@@ -42,7 +43,7 @@ export default function StepCalendar({
     
             const health =
                 healths.find(
-                (h: any) =>
+                (h) =>
                     h.date === date
                 );
   

@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { apiFetch } from "../lib/api";
-import { Activity } from "../types/helth" // 型インポート
 
 type Props = {
   selectedDate: string;
-  selectedActivity: Activity | null;
   reloadActivities: () => void;
 };
 
@@ -51,15 +48,15 @@ export default function ActivityLog({
       console.log(body);
 
       const response =
-        await apiFetch(
-          "/api/activities",
+        await fetch(
+          "http://localhost:8080/api/activities",
           {
             method: "POST",
 
-            //headers: {
-            //  "Content-Type":
-            //    "application/json",
-            //},
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
             body:
               JSON.stringify(body),

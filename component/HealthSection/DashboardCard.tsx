@@ -1,5 +1,9 @@
 "use client";
 
+// 型のインポート
+import { Health } from "../types/helth"
+
+/*
 type Health = {
   id: string;
   date: string;
@@ -8,6 +12,7 @@ type Health = {
   exerciseMinutes: number;
   waterMl: number;
 };
+*/
 
 type Props = {
   healths: Health[];

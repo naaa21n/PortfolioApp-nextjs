@@ -1,12 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
-import type {
-  Health,
-  Activity,
-  Journal,
-} from "../types/helth"; // 型インポート
 
 import DashboardCard from "./DashboardCard";
 import StepCalendar from "./StepCalendar";
@@ -25,8 +19,6 @@ export default function HealthSection() {
   // State
   // =========================
 
-  /*
-  // 型の定義
   type Health = {
     id: string;
     date: string;
@@ -36,35 +28,14 @@ export default function HealthSection() {
     waterMl: number;
   };
 
-  // 仮の型を定義(修正必要)
-  type Activity = {
-    id: string;
-    date: string;
-    sleep: number;
-    work: number;
-    study: number;
-    exercise: number;
-    hobby: number;
-    other: number;
-  };
-
-  // 仮の型を定義(修正必要)
-  type Journal = {
-    id: string;
-    date: string;
-    [key: string]: unknown;
-  };
-  */
-
   const [healths, setHealths] =
   useState<Health[]>([]);
 
   const [activities, setActivities] =
-    useState<Activity[]>([]);
+    useState([]);
 
-  // これ使用してなさそう
   const [journals, setJournals] =
-    useState<Journal[]>([]);
+    useState([]);
 
   const [selectedDate, setSelectedDate] =
     useState("");
@@ -72,7 +43,7 @@ export default function HealthSection() {
   const [selectedHealth, setSelectedHealth] =
     useState<Health | null>(null);
 
-  const selectedActivity =
+    const selectedActivity =
     activities.find(
       (a: any) =>
         a.date === selectedDate
@@ -96,14 +67,16 @@ export default function HealthSection() {
   // =========================
 
   const loadHealths = async () => {
-    try {
-      const response = await apiFetch("/api/healths");
-      const data = await response.json();
 
-      setHealths(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Health Load Error", error);
-    }
+    const response =
+      await fetch(
+        "http://localhost:8080/api/healths"
+      );
+
+    const data =
+      await response.json();
+
+    setHealths(data);
   };
 
   // =========================
@@ -111,14 +84,16 @@ export default function HealthSection() {
   // =========================
 
   const loadActivities = async () => {
-  try {
-    const response = await apiFetch("/api/activities");
-    const data = await response.json();
 
-    setActivities(Array.isArray(data) ? data : []);
-  } catch (error) {
-    console.error("Activity Load Error", error);
-  }
+    const response =
+      await fetch(
+        "http://localhost:8080/api/activities"
+      );
+
+    const data =
+      await response.json();
+
+    setActivities(data);
   };
 
   // =========================
@@ -126,15 +101,17 @@ export default function HealthSection() {
   // =========================
 
   const loadJournals = async () => {
-  try {
-    const response = await apiFetch("/api/journals");
-    const data = await response.json();
 
-    setJournals(Array.isArray(data) ? data : []);
-  } catch (error) {
-    console.error("Journal Load Error", error);
-  }
-};
+    const response =
+      await fetch(
+        "http://localhost:8080/api/journals"
+      );
+
+    const data =
+      await response.json();
+
+    setJournals(data);
+  };
 
   // =========================
   // 日付選択

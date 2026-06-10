@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
 
 type Diary = {
   id: string;
@@ -39,8 +38,8 @@ export default function DiaryList() {
 
     try {
   
-      const response = await apiFetch(
-        "/api/diaries"
+      const response = await fetch(
+        "http://localhost:8080/api/diaries"
       );
   
       console.log("status", response.status);
@@ -76,15 +75,15 @@ export default function DiaryList() {
       return;
     }
 
-    apiFetch(
-      "/api/diaries",
+    fetch(
+      "http://localhost:8080/api/diaries",
       {
         method: "POST",
 
-        //headers: {
-        //  "Content-Type":
-        //    "application/json",
-        //},
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
 
         body: JSON.stringify({
 
@@ -119,8 +118,8 @@ export default function DiaryList() {
     id: string
   ) => {
 
-    apiFetch(
-      `/api/diaries/${id}`,
+    fetch(
+      `http://localhost:8080/api/diaries/${id}`,
       {
         method: "DELETE",
       }
@@ -150,15 +149,15 @@ export default function DiaryList() {
       return;
     }
 
-    apiFetch(
-      `/api/diaries/${diary.id}`,
+    fetch(
+      `http://localhost:8080/api/diaries/${diary.id}`,
       {
         method: "PUT",
 
-        //headers: {
-        //  "Content-Type":
-        //    "application/json",
-        //},
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
 
         body: JSON.stringify({
 

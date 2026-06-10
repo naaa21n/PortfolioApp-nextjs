@@ -9,21 +9,17 @@ import Link from "next/link";
 
 // React State管理
 import { useState } from "react";
-import { apiFetch } from "@/component/lib/api";
 
 // =========================
-// Register Page
+// Login Page
 // =========================
 
-// 会員登録画面
-export default function RegisterPage() {
+// ログイン画面
+export default function LoginPage() {
 
   // =========================
   // State
   // =========================
-
-  // 名前入力状態
-  const [name, setName] = useState("");
 
   // メールアドレス入力状態
   const [email, setEmail] =
@@ -34,52 +30,61 @@ export default function RegisterPage() {
     useState("");
 
   // =========================
-  // Register Function
+  // Login Function
   // =========================
 
-  // 会員登録処理
-  const handleRegister = async () => {
+  // ログイン処理
+  const handleLogin = async () => {
 
     // Spring Boot APIへPOST通信
-    const response = await apiFetch(
-      "/api/auth/register",
+    const response = await fetch(
+      "http://localhost:8080/api/auth/login",
       {
 
         // HTTP Method
         method: "POST",
 
         // Header
-        //headers: {
-        //  "Content-Type": "application/json",
-        //},
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-        // Request Body
+        // JSON Body
         body: JSON.stringify({
-
-          // 一時ID生成
-          //
-          // 現在はSpring Boot側で
-          // 自動生成されるため
-          // 本来不要
-          id: String(Date.now()),
-
-          // 名前
-          name,
-
-          // メール
           email,
-
-          // パスワード
           password,
         }),
       }
     );
 
-    // JSON取得
-    const data = await response.json();
+    // レスポンス文字列取得
+    const text = await response.text();
 
-    // 結果表示
-    alert(data.message);
+    // console確認
+    console.log(text);
+
+    try {
+
+      // JSON変換
+      const data = JSON.parse(text);
+
+      // メッセージ表示
+      alert(data.message);
+
+      // ログイン成功時
+      if (data.success) {
+
+        // Dashboardへ遷移
+        window.location.href =
+          "/dashboard";
+      }
+
+    } catch (error) {
+
+      // JSON変換失敗時
+      console.error(text);
+
+    }
   };
 
   // =========================
@@ -103,12 +108,12 @@ export default function RegisterPage() {
         alignItems: "center",
         justifyContent: "center",
 
-        // 外側余白
+        // 余白
         padding: "20px",
       }}
     >
 
-      {/* Register Card */}
+      {/* Login Card */}
       <div
         style={{
 
@@ -118,7 +123,7 @@ export default function RegisterPage() {
           // 最大幅
           maxWidth: "420px",
 
-          // 背景色
+          // 背景
           background: "white",
 
           // 内側余白
@@ -143,7 +148,7 @@ export default function RegisterPage() {
             textAlign: "center",
           }}
         >
-          会員登録
+          ログイン
         </h1>
 
         {/* Input Area */}
@@ -158,20 +163,6 @@ export default function RegisterPage() {
             gap: "16px",
           }}
         >
-
-          {/* Name Input */}
-          <input
-            type="text"
-            placeholder="名前"
-            value={name}
-
-            // 入力変更時
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-
-            style={inputStyle}
-          />
 
           {/* Email Input */}
           <input
@@ -203,27 +194,27 @@ export default function RegisterPage() {
             style={inputStyle}
           />
 
-          {/* Register Button */}
+          {/* Login Button */}
           <button
-            onClick={handleRegister}
+            onClick={handleLogin}
             style={buttonStyle}
           >
-            登録する
+            ログイン
           </button>
 
         </div>
 
-        {/* Login Guide */}
+        {/* Register Guide */}
         <p
           style={{
             marginTop: "20px",
             textAlign: "center",
           }}
         >
-          既にアカウントをお持ちですか？
+          アカウントをお持ちでないですか？
         </p>
 
-        {/* Login Link */}
+        {/* Register Link */}
         <div
           style={{
             textAlign: "center",
@@ -231,9 +222,9 @@ export default function RegisterPage() {
           }}
         >
 
-          {/* Login Page */}
-          <Link href="/login">
-            ログインはこちら
+          {/* Register Page */}
+          <Link href="/register">
+            会員登録はこちら
           </Link>
 
         </div>

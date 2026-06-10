@@ -4,10 +4,7 @@ import {
     useEffect,
     useState,
   } from "react";
-import { apiFetch } from "../lib/api";
-import { Health } from "../types/helth" // 型インポート
 
-/*
 type Health = {
   id: string;
   date: string;
@@ -16,7 +13,6 @@ type Health = {
   sleepHours: number;
   waterMl: number;
 };
-*/
 
 type Props = {
     selectedDate: string;
@@ -98,16 +94,26 @@ export default function HealthForm({
       selectedHealth
         ? "PUT"
         : "POST";
-    
-    const path =
+  
+    const url =
       selectedHealth
-        ? `/api/healths/${selectedHealth.id}`
-        : "/api/healths";
-
-    const response = await apiFetch(path, {
-      method,
-      body: JSON.stringify(body),
-    });
+        ? `http://localhost:8080/api/healths/${selectedHealth.id}`
+        : "http://localhost:8080/api/healths";
+  
+    console.log(body);
+  
+    const response =
+      await fetch(url, {
+        method,
+  
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+  
+        body:
+          JSON.stringify(body),
+      });
   
     console.log(
       response.status

@@ -1,5 +1,9 @@
 "use client";
 
+// 型のインポート
+import { Activity } from "../types/helth"
+
+/*
 type Activity = {
 sleep: number;
 work: number;
@@ -8,6 +12,7 @@ exercise: number;
 hobby: number;
 other: number;
 };
+*/
 
 type Props = {
 activity?: Activity | null;

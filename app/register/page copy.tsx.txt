@@ -9,7 +9,6 @@ import Link from "next/link";
 
 // React State管理
 import { useState } from "react";
-import { apiFetch } from "@/component/lib/api";
 
 // =========================
 // Register Page
@@ -41,17 +40,17 @@ export default function RegisterPage() {
   const handleRegister = async () => {
 
     // Spring Boot APIへPOST通信
-    const response = await apiFetch(
-      "/api/auth/register",
+    const response = await fetch(
+      "http://localhost:8080/api/auth/register",
       {
 
         // HTTP Method
         method: "POST",
 
         // Header
-        //headers: {
-        //  "Content-Type": "application/json",
-        //},
+        headers: {
+          "Content-Type": "application/json",
+        },
 
         // Request Body
         body: JSON.stringify({
