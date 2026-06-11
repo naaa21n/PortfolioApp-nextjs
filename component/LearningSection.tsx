@@ -10,14 +10,14 @@ import { apiFetch } from "./lib/api";
 type Learning = {
   id: string;
   title: string;
-  studyHours: number;
+  studyTime: number;
   studyDate: string;
 };
 
 type Book = {
   id: number;
   title: string;
-  time: string;
+  readTime: number;
   readDate: string;
   image: string;
 };
@@ -53,7 +53,7 @@ export default function LearningSection() {
   const [graphMode, setGraphMode] = useState<GraphMode>("all");
 
   const [studyTitle, setStudyTitle] = useState("");
-  const [studyHours, setStudyHours] = useState("");
+  const [studyTime, setStudyTime] = useState("");
   const [studyDate, setStudyDate] = useState("");
 
   const [bookTitle, setBookTitle] = useState("");
@@ -71,28 +71,28 @@ export default function LearningSection() {
     {
       id: 1,
       title: "7つの習慣",
-      time: "120分",
+      readTime: 120,
       readDate: "2025-06-16",
       image: "https://placehold.co/60x80",
     },
     {
       id: 2,
       title: "エッセンシャル思考",
-      time: "90分",
+      readTime: 90,
       readDate: "2025-06-17",
       image: "https://placehold.co/60x80",
     },
     {
       id: 3,
       title: "影響力の武器",
-      time: "60分",
+      readTime: 60,
       readDate: "2025-06-18",
       image: "https://placehold.co/60x80",
     },
     {
       id: 4,
       title: "THINK AGAIN",
-      time: "45分",
+      readTime: 45,
       readDate: "2025-06-19",
       image: "https://placehold.co/60x80",
     },
@@ -102,31 +102,31 @@ export default function LearningSection() {
     {
       id: "sample-1",
       title: "React学習",
-      studyHours: 4,
+      studyTime: 240,
       studyDate: "2025-06-16",
     },
     {
       id: "sample-2",
       title: "TypeScript学習",
-      studyHours: 6,
+      studyTime: 360,
       studyDate: "2025-06-17",
     },
     {
       id: "sample-3",
       title: "Next.js学習",
-      studyHours: 2,
+      studyTime: 120,
       studyDate: "2025-06-18",
     },
     {
       id: "sample-4",
       title: "API連携学習",
-      studyHours: 7,
+      studyTime: 420,
       studyDate: "2025-06-19",
     },
     {
       id: "sample-5",
       title: "UI実装学習",
-      studyHours: 5,
+      studyTime: 300,
       studyDate: "2025-06-20",
     },
   ]);
@@ -148,7 +148,7 @@ export default function LearningSection() {
   };
 
   const addLearning = async () => {
-    if (!studyTitle || !studyHours || !studyDate) {
+    if (!studyTitle || !studyTime || !studyDate) {
       alert("学習内容・学習時間・学習日を入力してください");
       return;
     }
@@ -165,13 +165,13 @@ export default function LearningSection() {
         body: JSON.stringify({
           id: String(Date.now()),
           title: studyTitle,
-          studyHours: Number(studyHours),
+          studyTime: Number(studyTime),
           studyDate,
         }),
       });
 
       setStudyTitle("");
-      setStudyHours("");
+      setStudyTime("");
       setStudyDate("");
 
       loadLearnings();
@@ -191,7 +191,7 @@ export default function LearningSection() {
       {
         id: Date.now(),
         title: bookTitle,
-        time: `${bookTime}分`,
+        readTime: Number(bookTime),
         readDate: bookDate,
         image: "https://placehold.co/60x80",
       },
@@ -236,39 +236,39 @@ export default function LearningSection() {
   const weekGraphData = Array.from({ length: 7 }).map((_, index) => {
     const dateKey = addDaysToDateKey(graphDisplayDate, index - 6);
 
-    const studyHoursTotal = displayLearnings.reduce((total, item) => {
+    const studyMinutesTotal = displayLearnings.reduce((total, item) => {
       const itemDateKey = normalizeDateKey(item.studyDate);
 
       if (itemDateKey !== dateKey) {
         return total;
       }
 
-      return total + Number(item.studyHours || 0);
+      return total + Number(item.studyTime || 0);
     }, 0);
 
-    const bookHoursTotal = books.reduce((total, book) => {
+    const bookMinutesTotal = books.reduce((total, book) => {
       const bookDateKey = normalizeDateKey(book.readDate);
 
       if (bookDateKey !== dateKey) {
         return total;
       }
 
-      return total + parseBookTimeToHours(book.time);
+      return total + Number(book.readTime || 0);
     }, 0);
 
     return {
       dateKey,
       studyDate: formatShortDate(dateKey),
       weekDay: formatWeekDay(dateKey),
-      studyHours: Number(studyHoursTotal.toFixed(2)),
-      bookHours: Number(bookHoursTotal.toFixed(2)),
+      studyMinutes: studyMinutesTotal,
+      bookMinutes: bookMinutesTotal,
     };
   });
 
-  const maxGraphHours = Math.max(
+  const maxGraphMinutes = Math.max(
     ...weekGraphData.flatMap((item) => [
-      item.studyHours,
-      item.bookHours,
+      item.studyMinutes,
+      item.bookMinutes,
     ]),
     1
   );
@@ -486,13 +486,13 @@ export default function LearningSection() {
 
                   <div style={{ marginBottom: "14px" }}>
                     <label style={formLabelStyle(activeTab)}>
-                      学習時間
+                      学習時間（分）
                     </label>
                     <input
                       type="number"
-                      value={studyHours}
-                      onChange={(e) => setStudyHours(e.target.value)}
-                      placeholder="例：2"
+                      value={studyTime}
+                      onChange={(e) => setStudyTime(e.target.value)}
+                      placeholder="例：120"
                       style={formInputStyle(activeTab)}
                     />
                   </div>
@@ -535,7 +535,7 @@ export default function LearningSection() {
 
                   <div style={{ marginBottom: "14px" }}>
                     <label style={formLabelStyle(activeTab)}>
-                      読書時間
+                      読書時間（分）
                     </label>
                     <input
                       type="number"
@@ -750,13 +750,13 @@ export default function LearningSection() {
               >
                 {weekGraphData.map((item) => {
                   const studyHeight = getGraphBarHeight(
-                    item.studyHours,
-                    maxGraphHours
+                    item.studyMinutes,
+                    maxGraphMinutes
                   );
 
                   const bookHeight = getGraphBarHeight(
-                    item.bookHours,
-                    maxGraphHours
+                    item.bookMinutes,
+                    maxGraphMinutes
                   );
 
                   return (
@@ -778,8 +778,8 @@ export default function LearningSection() {
                           }}
                         >
                           <div
-                            title={`学習 ${formatHoursLabel(
-                              item.studyHours
+                            title={`学習 ${formatMinutesLabel(
+                              item.studyMinutes
                             )}`}
                             style={{
                               width: "38%",
@@ -788,15 +788,15 @@ export default function LearningSection() {
                               height: `${studyHeight}px`,
                               borderRadius: "12px 12px 0 0",
                               background:
-                                item.studyHours === 0
+                                item.studyMinutes === 0
                                   ? "#e2e8f0"
                                   : STUDY_COLOR,
                             }}
                           />
 
                           <div
-                            title={`読書 ${formatHoursLabel(
-                              item.bookHours
+                            title={`読書 ${formatMinutesLabel(
+                              item.bookMinutes
                             )}`}
                             style={{
                               width: "38%",
@@ -805,7 +805,7 @@ export default function LearningSection() {
                               height: `${bookHeight}px`,
                               borderRadius: "12px 12px 0 0",
                               background:
-                                item.bookHours === 0
+                                item.bookMinutes === 0
                                   ? "#e2e8f0"
                                   : BOOK_COLOR,
                             }}
@@ -833,10 +833,10 @@ export default function LearningSection() {
                               borderRadius: "14px 14px 0 0",
                               background:
                                 graphMode === "learning"
-                                  ? item.studyHours === 0
+                                  ? item.studyMinutes === 0
                                     ? "#e2e8f0"
                                     : STUDY_COLOR
-                                  : item.bookHours === 0
+                                  : item.bookMinutes === 0
                                   ? "#e2e8f0"
                                   : BOOK_COLOR,
                             }}
@@ -880,11 +880,11 @@ export default function LearningSection() {
                           }}
                         >
                           <span style={{ color: STUDY_COLOR }}>
-                            {formatHoursLabel(item.studyHours)}
+                            {formatMinutesLabel(item.studyMinutes)}
                           </span>
                           <br />
                           <span style={{ color: BOOK_COLOR }}>
-                            {formatHoursLabel(item.bookHours)}
+                            {formatMinutesLabel(item.bookMinutes)}
                           </span>
                         </div>
                       ) : (
@@ -901,8 +901,8 @@ export default function LearningSection() {
                           }}
                         >
                           {graphMode === "learning"
-                            ? formatHoursLabel(item.studyHours)
-                            : formatHoursLabel(item.bookHours)}
+                            ? formatMinutesLabel(item.studyMinutes)
+                            : formatMinutesLabel(item.bookMinutes)}
                         </div>
                       )}
                     </div>
@@ -1239,7 +1239,7 @@ export default function LearningSection() {
                             wordBreak: "break-word",
                           }}
                         >
-                          学習内容 : {item.title}
+                          学習内容：{item.title}
                         </div>
 
                         <div
@@ -1249,7 +1249,7 @@ export default function LearningSection() {
                             fontWeight: "bold",
                           }}
                         >
-                          学習時間 : {item.studyHours}時間
+                          学習時間：{formatMinutesLabel(item.studyTime)}
                         </div>
 
                         <div
@@ -1259,7 +1259,7 @@ export default function LearningSection() {
                             marginTop: "2px",
                           }}
                         >
-                          学習日 : {item.studyDate}
+                          学習日：{item.studyDate}
                         </div>
                       </div>
                     </div>
@@ -1359,7 +1359,7 @@ export default function LearningSection() {
                             fontSize: "12px",
                           }}
                         >
-                          読書時間 : {book.time}
+                          読書時間：{formatMinutesLabel(book.readTime)}
                         </div>
 
                         <div
@@ -1369,7 +1369,7 @@ export default function LearningSection() {
                             marginTop: "2px",
                           }}
                         >
-                          読書日 : {book.readDate}
+                          読書日：{book.readDate}
                         </div>
                       </div>
                     </div>
@@ -1509,43 +1509,28 @@ const createCalendarDays = (monthValue: string): CalendarDay[] => {
   });
 };
 
-const parseBookTimeToHours = (timeText: string) => {
-  const text = String(timeText).trim();
+const formatMinutesLabel = (minutes: number) => {
+  const totalMinutes =
+    Math.max(
+      0,
+      Math.floor(Number(minutes) || 0)
+    );
 
-  const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*時間/);
-  const minuteMatch = text.match(/(\d+(?:\.\d+)?)\s*分/);
+  const hours =
+    Math.floor(totalMinutes / 60);
 
-  let totalMinutes = 0;
+  const remainingMinutes =
+    totalMinutes % 60;
 
-  if (hourMatch) {
-    totalMinutes += Number(hourMatch[1]) * 60;
-  }
-
-  if (minuteMatch) {
-    totalMinutes += Number(minuteMatch[1]);
-  }
-
-  if (!hourMatch && !minuteMatch) {
-    const numericValue = Number(text.replace(/[^\d.]/g, ""));
-
-    if (!Number.isNaN(numericValue)) {
-      totalMinutes = numericValue;
-    }
-  }
-
-  return Number((totalMinutes / 60).toFixed(2));
-};
-
-const formatHoursLabel = (hours: number) => {
   if (hours === 0) {
-    return "0h";
+    return `${remainingMinutes}分`;
   }
 
-  if (Number.isInteger(hours)) {
-    return `${hours}h`;
+  if (remainingMinutes === 0) {
+    return `${hours}時間`;
   }
 
-  return `${hours.toFixed(1)}h`;
+  return `${hours}時間${remainingMinutes}分`;
 };
 
 const getGraphBarHeight = (value: number, maxValue: number) => {

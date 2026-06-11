@@ -4,10 +4,31 @@
 // Import
 // =========================
 
+import { useState } from "react";
+
 // 共通レイアウト
 //
 // Sidebar込み画面
 import Layout from "./layout/Layout";
+
+// =========================
+// Type
+// =========================
+
+type Task = {
+  id: string;
+  title: string;
+  taskDate: string;
+  deadline: string;
+  content: string;
+  completed: boolean;
+};
+
+type Memo = {
+  id: string;
+  title: string;
+  content: string;
+};
 
 // =========================
 // Tasks Page
@@ -15,6 +36,233 @@ import Layout from "./layout/Layout";
 //
 // タスク管理画面
 export default function TasksPage() {
+
+  const todayDateKey =
+    toDateKey(new Date());
+
+  // =========================
+  // State
+  // =========================
+
+  const [tasks, setTasks] =
+    useState<Task[]>([
+      {
+        id: "task-1",
+        title: "朝勉強",
+        taskDate: todayDateKey,
+        deadline: todayDateKey,
+        content: "Java Spring BootのEntity設計を確認する",
+        completed: true,
+      },
+      {
+        id: "task-2",
+        title: "ジム",
+        taskDate: todayDateKey,
+        deadline: todayDateKey,
+        content: "30分だけ運動する",
+        completed: false,
+      },
+      {
+        id: "task-3",
+        title: "読書",
+        taskDate: todayDateKey,
+        deadline: todayDateKey,
+        content: "寝る前に20分読む",
+        completed: false,
+      },
+    ]);
+
+  const [memos, setMemos] =
+    useState<Memo[]>([
+      {
+        id: "memo-1",
+        title: "アイデア",
+        content: "新しいプロジェクトについて整理する",
+      },
+      {
+        id: "memo-2",
+        title: "読書メモ",
+        content: "嫌われる勇気を読み直す",
+      },
+      {
+        id: "memo-3",
+        title: "買い物リスト",
+        content: "水・コーヒー・ノート",
+      },
+    ]);
+
+  const [taskTitle, setTaskTitle] =
+    useState("");
+
+  const [taskDate, setTaskDate] =
+    useState(todayDateKey);
+
+  const [deadline, setDeadline] =
+    useState(todayDateKey);
+
+  const [taskContent, setTaskContent] =
+    useState("");
+
+  const [memoTitle, setMemoTitle] =
+    useState("");
+
+  const [memoContent, setMemoContent] =
+    useState("");
+
+  // =========================
+  // Derived Data
+  // =========================
+
+  const todayTasks =
+    tasks.filter(
+      (task) =>
+        task.taskDate === todayDateKey
+    );
+
+  const completedTodayTasks =
+    todayTasks.filter(
+      (task) => task.completed
+    );
+
+  const completedTasks =
+    tasks.filter(
+      (task) => task.completed
+    );
+
+  const incompleteTasks =
+    tasks.filter(
+      (task) => !task.completed
+    );
+
+  const thisWeekTasks =
+    tasks.filter(
+      (task) =>
+        isThisWeek(task.taskDate)
+    );
+
+  const completedThisWeekTasks =
+    thisWeekTasks.filter(
+      (task) => task.completed
+    );
+
+  const weeklyRate =
+    thisWeekTasks.length === 0
+      ? 0
+      : Math.round(
+          (
+            completedThisWeekTasks.length /
+            thisWeekTasks.length
+          ) * 100
+        );
+
+  // =========================
+  // Task Function
+  // =========================
+
+  const addTask = () => {
+
+    if (
+      !taskTitle.trim() ||
+      !taskDate ||
+      !deadline
+    ) {
+      alert(
+        "タスク名・実施日・期限を入力してください"
+      );
+      return;
+    }
+
+    const newTask: Task = {
+      id: String(Date.now()),
+      title: taskTitle,
+      taskDate,
+      deadline,
+      content: taskContent,
+      completed: false,
+    };
+
+    setTasks([
+      newTask,
+      ...tasks,
+    ]);
+
+    setTaskTitle("");
+    setTaskDate(todayDateKey);
+    setDeadline(todayDateKey);
+    setTaskContent("");
+  };
+
+  const toggleTaskDone = (
+    id: string
+  ) => {
+
+    setTasks(
+      tasks.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              completed:
+                !task.completed,
+            }
+          : task
+      )
+    );
+  };
+
+  const deleteTask = (
+    id: string
+  ) => {
+
+    setTasks(
+      tasks.filter(
+        (task) =>
+          task.id !== id
+      )
+    );
+  };
+
+  // =========================
+  // Memo Function
+  // =========================
+
+  const addMemo = () => {
+
+    if (
+      !memoTitle.trim() ||
+      !memoContent.trim()
+    ) {
+      alert(
+        "メモのタイトルと内容を入力してください"
+      );
+      return;
+    }
+
+    const newMemo: Memo = {
+      id: String(Date.now()),
+      title: memoTitle,
+      content: memoContent,
+    };
+
+    setMemos([
+      newMemo,
+      ...memos,
+    ]);
+
+    setMemoTitle("");
+    setMemoContent("");
+  };
+
+  const deleteMemo = (
+    id: string
+  ) => {
+
+    setMemos(
+      memos.filter(
+        (memo) =>
+          memo.id !== id
+      )
+    );
+  };
 
   return (
 
@@ -25,408 +273,839 @@ export default function TasksPage() {
     // Sidebar + Main画面
     <Layout currentPage="タスクとメモ帳">
 
-      {/* =========================
-           Page Title Area
-      ========================= */}
       <div
         style={{
-          padding: "40px", // 少し余裕を持たせる
-          maxWidth: "1400px", // 画面が広がりすぎないように制限
+          minHeight: "100vh",
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "hidden",
+          boxSizing: "border-box",
           background:
             "linear-gradient(135deg,#f5f3ff 0%,#eef2ff 100%)",
-          margin: "0 auto",
-          fontFamily: "'Inter', 'Noto Sans JP', sans-serif",
-        }}
-      >
-
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent:
-              "space-between",
-            alignItems: "center",
-            marginBottom: "26px",
-          }}
-        >
-          <div>
-            {/* タイトル */}
-            <h1
-              style={{
-                fontSize: "48px",
-                fontWeight: "bold",
-                color: "#1e1b4b",
-              }}
-            >
-              📝 タスクとメモ帳
-            </h1>
-
-            {/* サブメッセージ */}
-            <p
-              style={{
-                color: "#64748b",
-                fontSize: "16px",
-              }}
-            >
-              ⭐ 小さな一歩の積み重ねが、
-              大きな未来をつくる。
-            </p>
-          </div>
-        </div>
-
-      {/* =========================
-           Top Summary Cards
-      ========================= */}
-      <div
-        style={{
-          // 横4列
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
-          padding: "24px 34px",
-          gap: "20px",
-          marginBottom: "32px",
         }}
       >
 
         {/* =========================
-             今日のタスク
-        ========================= */}
-        <div style={summaryCard}>
-
-          {/* Emoji */}
-          <div style={emojiStyle}>
-            ✅
-          </div>
-
-          {/* Text */}
-          <div>
-
-            {/* 小タイトル */}
-            <div style={smallText}>
-              今日のタスク
-            </div>
-
-            {/* 大きい数値 */}
-            <div style={bigText}>
-              3 / 8件
-            </div>
-
-          </div>
-        </div>
-
-        {/* =========================
-             今週の達成率
-        ========================= */}
-        <div style={summaryCard}>
-
-          <div style={emojiStyle}>
-            📅
-          </div>
-
-          <div>
-
-            <div style={smallText}>
-              今週の達成率
-            </div>
-
-            <div style={bigText}>
-              72%
-            </div>
-
-          </div>
-        </div>
-
-        {/* =========================
-             連続記録
-        ========================= */}
-        <div style={summaryCard}>
-
-          <div style={emojiStyle}>
-            🔥
-          </div>
-
-          <div>
-
-            <div style={smallText}>
-              連続記録
-            </div>
-
-            <div style={bigText}>
-              12日
-            </div>
-
-          </div>
-        </div>
-
-        {/* =========================
-             総完了数
-        ========================= */}
-        <div style={summaryCard}>
-
-          <div style={emojiStyle}>
-            ⭐
-          </div>
-
-          <div>
-
-            <div style={smallText}>
-              総タスク完了数
-            </div>
-
-            <div style={bigText}>
-              128件
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-
-      {/* =========================
-           Task Add Area
-      ========================= */}
-      <div style={mainCard}>
-
-        {/* タイトル */}
-        <h2
-          style={{
-            fontSize: "28px",
-            marginBottom: "24px",
-            color: "#64748b",
-          }}
-        >
-          ✏️ タスクを追加
-        </h2>
-
-        {/* =========================
-             Task Input Row
+             Page Inner
         ========================= */}
         <div
           style={{
-            display: "flex",
-            gap: "12px",
-            marginBottom: "20px",
-          }}
-        >
-
-          {/* 日付入力 */}
-          <input
-            type="date"
-            style={inputStyle}
-          />
-
-          {/* タスク入力 */}
-          <input
-            placeholder="タスクを入力..."
-            style={{
-              ...inputStyle,
-              // 横幅最大
-              flex: 1,
-            }}
-          />
-
-          {/* 完了ボタン */}
-          <button
-            style={greenButton}
-          >
-            完了
-          </button>
-
-          {/* 削除ボタン */}
-          <button
-            style={redButton}
-          >
-            削除
-          </button>
-
-        </div>
-
-        {/* =========================
-             Memo Area
-        ========================= */}
-        <div
-          style={{
-            // 左右分割
-            display: "grid",
-            gridTemplateColumns:
-              "1fr 2fr",
-            gap: "20px",
-            marginTop: "30px",
+            width: "100%",
+            maxWidth: "1600px",
+            margin: "0 auto",
+            padding:
+              "clamp(18px, 2vw, 32px)",
+            fontFamily:
+              "'Inter', 'Noto Sans JP', sans-serif",
+            boxSizing: "border-box",
+            overflowX: "hidden",
           }}
         >
 
           {/* =========================
-               Deadline
+               Header
           ========================= */}
-          <div>
-
-            {/* ラベル */}
-            <div style={labelStyle}>
-              期限
-            </div>
-
-            {/* 日付入力 */}
-            <input
-              type="date"
-              style={inputStyle}
-            />
-
-          </div>
-
-          {/* =========================
-               Memo
-          ========================= */}
-          <div>
-
-            {/* ラベル */}
-            <div style={labelStyle}>
-              内容
-            </div>
-
-            {/* メモ入力 */}
-            <textarea
-              placeholder="タスク内容を入力..."
-              style={{
-                width: "100%",
-                height: "140px",
-                border:
-                  "1px solid #dbe2ea",
-                borderRadius: "14px",
-                padding: "16px",
-                resize: "none",
-                fontSize: "15px",
-              }}
-            />
-
-          </div>
-
-        </div>
-
-        {/* =========================
-             Add Button Area
-        ========================= */}
-        <div
-          style={{
-            marginTop: "24px",
-            display: "flex",
-            justifyContent:
-              "flex-end",
-          }}
-        >
-
-          {/* 追加ボタン */}
-          <button
-            style={blueButton}
-          >
-            ➕ 追加する
-          </button>
-
-        </div>
-
-      </div>
-
-      {/* =========================
-           Bottom Area
-      ========================= */}
-      <div
-        style={{
-          // 左右2カラム
-          display: "grid",
-          gridTemplateColumns:
-            "2fr 1fr",
-          gap: "24px",
-          marginTop: "30px",
-        }}
-      >
-
-        {/* =========================
-             Memo Area
-        ========================= */}
-        <div style={mainCard}>
-
-          {/* Header */}
           <div
             style={{
               display: "flex",
               justifyContent:
                 "space-between",
               alignItems: "center",
-              marginBottom: "24px",
+              gap: "20px",
+              marginBottom: "20px",
+              flexWrap: "wrap",
             }}
           >
+            <div>
+
+              {/* タイトル */}
+              <h1
+                style={{
+                  fontSize:
+                    "clamp(30px, 4vw, 44px)",
+                  fontWeight: "bold",
+                  color: "#1e1b4b",
+                  margin: 0,
+                }}
+              >
+                📝 タスクとメモ帳
+              </h1>
+
+              {/* サブメッセージ */}
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "16px",
+                  marginTop: "8px",
+                }}
+              >
+                小さな一歩を積み重ねて、
+                今日やることを整理しよう。
+              </p>
+
+            </div>
+          </div>
+
+          {/* =========================
+               Top Summary Cards
+          ========================= */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: "20px",
+              marginBottom: "20px",
+            }}
+          >
+
+            {/* 今日のタスク */}
+            <div style={summaryCard}>
+
+              <div style={emojiStyle}>
+                ✅
+              </div>
+
+              <div>
+
+                <div style={smallText}>
+                  今日のタスク
+                </div>
+
+                <div style={bigText}>
+                  {completedTodayTasks.length}
+                  {" / "}
+                  {todayTasks.length}
+                  件
+                </div>
+
+              </div>
+            </div>
+
+            {/* 今週の達成率 */}
+            <div style={summaryCard}>
+
+              <div style={emojiStyle}>
+                📅
+              </div>
+
+              <div>
+
+                <div style={smallText}>
+                  今週の達成率
+                </div>
+
+                <div style={bigText}>
+                  {weeklyRate}%
+                </div>
+
+              </div>
+            </div>
+
+            {/* 未完了 */}
+            <div style={summaryCard}>
+
+              <div style={emojiStyle}>
+                🕒
+              </div>
+
+              <div>
+
+                <div style={smallText}>
+                  未完了タスク
+                </div>
+
+                <div style={bigText}>
+                  {incompleteTasks.length}
+                  件
+                </div>
+
+              </div>
+            </div>
+
+            {/* 総完了数 */}
+            <div style={summaryCard}>
+
+              <div style={emojiStyle}>
+                ⭐
+              </div>
+
+              <div>
+
+                <div style={smallText}>
+                  総タスク完了数
+                </div>
+
+                <div style={bigText}>
+                  {completedTasks.length}
+                  件
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* =========================
+               Task Add Area
+          ========================= */}
+          <div style={mainCard}>
 
             {/* タイトル */}
             <h2
               style={{
-                color: "#64748b",
-                fontSize: "28px",
+                fontSize: "24px",
+                fontWeight: "bold",
+                marginTop: 0,
+                marginBottom: "18px",
+                color: "#1e293b",
               }}
             >
-              📒 メモ帳
+              ✏️ タスクを追加
             </h2>
 
-            {/* 新規ボタン */}
-            <button
-              style={miniButton}
+            {/* =========================
+                 Task Input Area
+            ========================= */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "16px",
+              }}
             >
-              ＋ 新しいメモ
-            </button>
+
+              {/* 実施日 */}
+              <div>
+                <div style={labelStyle}>
+                  実施日
+                </div>
+
+                <input
+                  type="date"
+                  value={taskDate}
+                  onChange={(e) =>
+                    setTaskDate(e.target.value)
+                  }
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* 期限 */}
+              <div>
+                <div style={labelStyle}>
+                  期限
+                </div>
+
+                <input
+                  type="date"
+                  value={deadline}
+                  onChange={(e) =>
+                    setDeadline(e.target.value)
+                  }
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* タスク名 */}
+              <div
+                style={{
+                  gridColumn:
+                    "span 2",
+                }}
+              >
+                <div style={labelStyle}>
+                  タスク名
+                </div>
+
+                <input
+                  value={taskTitle}
+                  onChange={(e) =>
+                    setTaskTitle(e.target.value)
+                  }
+                  placeholder="例：Spring BootのEntityを作成"
+                  style={inputStyle}
+                />
+              </div>
+
+            </div>
+
+            {/* =========================
+                 Task Detail
+            ========================= */}
+            <div
+              style={{
+                marginTop: "18px",
+              }}
+            >
+
+              <div style={labelStyle}>
+                内容
+              </div>
+
+              <textarea
+                value={taskContent}
+                onChange={(e) =>
+                  setTaskContent(e.target.value)
+                }
+                placeholder="タスクの詳細やメモを入力..."
+                style={textareaStyle}
+              />
+
+            </div>
+
+            {/* =========================
+                 Add Button Area
+            ========================= */}
+            <div
+              style={{
+                marginTop: "18px",
+                display: "flex",
+                justifyContent:
+                  "flex-end",
+              }}
+            >
+
+              {/* 追加ボタン */}
+              <button
+                type="button"
+                onClick={addTask}
+                style={blueButton}
+              >
+                ➕ タスクを追加
+              </button>
+
+            </div>
 
           </div>
 
-          {/* メモ一覧 */}
-          <div style={memoItem}>
-            💡 アイデア :
-            新しいプロジェクトについて
-          </div>
-
-          <div style={memoItem}>
-            📚 読書メモ :
-            嫌われる勇気
-          </div>
-
-          <div style={memoItem}>
-            🛒 買い物リスト
-          </div>
-
-        </div>
-
-        {/* =========================
-             Schedule Area
-        ========================= */}
-        <div style={mainCard}>
-
-          {/* タイトル */}
-          <h2
+          {/* =========================
+               Task List + Today Schedule
+          ========================= */}
+          <div
             style={{
-              color: "#64748b",
-              fontSize: "28px",
-              marginBottom: "24px",
+              display: "grid",
+              gridTemplateColumns:
+                "2fr 1fr",
+              gap: "20px",
+              marginTop: "20px",
             }}
           >
-            📅 今日の予定
-          </h2>
 
-          {/* スケジュール */}
-          <div style={scheduleItem}>
-            09:00 朝勉強
+            {/* =========================
+                 Task List
+            ========================= */}
+            <div style={mainCard}>
+
+              {/* Header */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "18px",
+                  flexWrap: "wrap",
+                }}
+              >
+
+                <h2
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: 0,
+                  }}
+                >
+                  ✅ タスク一覧
+                </h2>
+
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                    background: "#f8fafc",
+                    border:
+                      "1px solid #e2e8f0",
+                    borderRadius: "999px",
+                    padding: "8px 12px",
+                  }}
+                >
+                  未完了 {incompleteTasks.length}件
+                </div>
+
+              </div>
+
+              {/* 一覧 */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection:
+                    "column",
+                  gap: "10px",
+                }}
+              >
+
+                {tasks.length === 0 && (
+                  <div style={emptyText}>
+                    まだタスクがありません。
+                  </div>
+                )}
+
+                {tasks.map((task) => (
+
+                  <div
+                    key={task.id}
+                    style={{
+                      ...taskItem,
+                      opacity:
+                        task.completed
+                          ? 0.72
+                          : 1,
+                    }}
+                  >
+
+                    <div
+                      style={{
+                        minWidth: 0,
+                        flex: 1,
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "6px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+
+                        <span
+                          style={{
+                            ...statusBadge,
+                            background:
+                              task.completed
+                                ? "#dcfce7"
+                                : "#fef3c7",
+                            color:
+                              task.completed
+                                ? "#15803d"
+                                : "#b45309",
+                          }}
+                        >
+                          {task.completed
+                            ? "完了"
+                            : "未完了"}
+                        </span>
+
+                        <strong
+                          style={{
+                            color: "#1e293b",
+                            textDecoration:
+                              task.completed
+                                ? "line-through"
+                                : "none",
+                            wordBreak:
+                              "break-word",
+                          }}
+                        >
+                          {task.title}
+                        </strong>
+
+                      </div>
+
+                      <div style={taskMetaText}>
+                        実施日：{task.taskDate}
+                        {" / "}
+                        期限：{task.deadline}
+                      </div>
+
+                      {task.content && (
+                        <div
+                          style={{
+                            color: "#475569",
+                            fontSize: "13px",
+                            marginTop: "6px",
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          {task.content}
+                        </div>
+                      )}
+
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        flexShrink: 0,
+                      }}
+                    >
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleTaskDone(task.id)
+                        }
+                        style={greenButton}
+                      >
+                        {task.completed
+                          ? "戻す"
+                          : "完了"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          deleteTask(task.id)
+                        }
+                        style={redButton}
+                      >
+                        削除
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            </div>
+
+            {/* =========================
+                 Schedule Area
+            ========================= */}
+            <div style={mainCard}>
+
+              {/* タイトル */}
+              <h2
+                style={{
+                  color: "#1e293b",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  marginTop: 0,
+                  marginBottom: "18px",
+                }}
+              >
+                📅 今日の予定
+              </h2>
+
+              {todayTasks.length === 0 && (
+                <div style={emptyText}>
+                  今日の予定はありません。
+                </div>
+              )}
+
+              {todayTasks.map((task) => (
+                <div
+                  key={task.id}
+                  style={scheduleItem}
+                >
+                  <div
+                    style={{
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {task.completed
+                      ? "✅"
+                      : "🕒"}{" "}
+                    {task.title}
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#64748b",
+                      fontSize: "12px",
+                    }}
+                  >
+                    期限：{task.deadline}
+                  </div>
+                </div>
+              ))}
+
+            </div>
+
           </div>
 
-          <div style={scheduleItem}>
-            13:00 ジム
-          </div>
+          {/* =========================
+               Memo Area
+          ========================= */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "1fr 1fr",
+              gap: "20px",
+              marginTop: "20px",
+            }}
+          >
 
-          <div style={scheduleItem}>
-            19:00 読書
+            {/* =========================
+                 Memo Input
+            ========================= */}
+            <div style={mainCard}>
+
+              <h2
+                style={{
+                  color: "#1e293b",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  marginTop: 0,
+                  marginBottom: "18px",
+                }}
+              >
+                📒 メモを追加
+              </h2>
+
+              <div style={labelStyle}>
+                タイトル
+              </div>
+
+              <input
+                value={memoTitle}
+                onChange={(e) =>
+                  setMemoTitle(e.target.value)
+                }
+                placeholder="例：アイデア"
+                style={inputStyle}
+              />
+
+              <div
+                style={{
+                  ...labelStyle,
+                  marginTop: "16px",
+                }}
+              >
+                内容
+              </div>
+
+              <textarea
+                value={memoContent}
+                onChange={(e) =>
+                  setMemoContent(e.target.value)
+                }
+                placeholder="メモ内容を入力..."
+                style={textareaStyle}
+              />
+
+              <div
+                style={{
+                  marginTop: "18px",
+                  display: "flex",
+                  justifyContent:
+                    "flex-end",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={addMemo}
+                  style={blueButton}
+                >
+                  ＋ メモを追加
+                </button>
+              </div>
+
+            </div>
+
+            {/* =========================
+                 Memo List
+            ========================= */}
+            <div style={mainCard}>
+
+              {/* Header */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  marginBottom: "18px",
+                }}
+              >
+
+                <h2
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: 0,
+                  }}
+                >
+                  📚 メモ一覧
+                </h2>
+
+                <div
+                  style={{
+                    ...statusBadge,
+                    background: "#ede9fe",
+                    color: "#6d28d9",
+                  }}
+                >
+                  {memos.length}件
+                </div>
+
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection:
+                    "column",
+                  gap: "10px",
+                }}
+              >
+
+                {memos.length === 0 && (
+                  <div style={emptyText}>
+                    まだメモがありません。
+                  </div>
+                )}
+
+                {memos.map((memo) => (
+
+                  <div
+                    key={memo.id}
+                    style={memoItem}
+                  >
+
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    >
+
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          color: "#1e293b",
+                          marginBottom: "6px",
+                          wordBreak:
+                            "break-word",
+                        }}
+                      >
+                        {memo.title}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "#475569",
+                          fontSize: "13px",
+                          whiteSpace:
+                            "pre-wrap",
+                        }}
+                      >
+                        {memo.content}
+                      </div>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        deleteMemo(memo.id)
+                      }
+                      style={redButton}
+                    >
+                      削除
+                    </button>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            </div>
+
           </div>
 
         </div>
-      </div>
       </div>
 
     </Layout>
   );
 }
+
+/* =========================
+   Helper
+========================= */
+
+const pad2 = (
+  value: number
+) =>
+  String(value).padStart(2, "0");
+
+const toDateKey = (
+  date: Date
+) => {
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    date.getMonth() + 1;
+
+  const day =
+    date.getDate();
+
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+};
+
+const isThisWeek = (
+  dateKey: string
+) => {
+
+  const target =
+    new Date(dateKey);
+
+  const now =
+    new Date();
+
+  const start =
+    new Date(now);
+
+  start.setDate(
+    now.getDate() -
+      now.getDay()
+  );
+
+  start.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const end =
+    new Date(start);
+
+  end.setDate(
+    start.getDate() + 6
+  );
+
+  end.setHours(
+    23,
+    59,
+    59,
+    999
+  );
+
+  return (
+    target >= start &&
+    target <= end
+  );
+};
 
 /* =========================
    Styles
@@ -435,114 +1114,188 @@ export default function TasksPage() {
 // メインカード
 //
 // 白背景 + 角丸 + 影
-const mainCard = {
-  background: "white",
+const mainCard: React.CSSProperties = {
+  background: "#fff",
   borderRadius: "24px",
-  padding: "32px",
+  padding: "22px",
   boxShadow:
-    "0 8px 24px rgba(0,0,0,0.08)",
+    "0 10px 26px rgba(0,0,0,0.05)",
+  minWidth: 0,
+  boxSizing: "border-box",
 };
 
 // 上部サマリーカード
-const summaryCard = {
-  background: "white",
-  borderRadius: "20px",
-  padding: "24px",
+const summaryCard: React.CSSProperties = {
+  background: "#fff",
+  borderRadius: "22px",
+  padding: "20px 22px",
   display: "flex",
   alignItems: "center",
-  gap: "18px",
+  gap: "16px",
   boxShadow:
-    "0 6px 20px rgba(0,0,0,0.06)",
+    "0 10px 26px rgba(0,0,0,0.05)",
+  minWidth: 0,
+  boxSizing: "border-box",
 };
 
 // Emoji
-const emojiStyle = {
-  fontSize: "34px",
+const emojiStyle: React.CSSProperties = {
+  fontSize: "32px",
 };
 
 // 小文字
-const smallText = {
-  fontSize: "14px",
+const smallText: React.CSSProperties = {
+  fontSize: "13px",
   color: "#64748b",
+  fontWeight: "bold",
 };
 
 // 大文字
-const bigText = {
-  fontSize: "34px",
+const bigText: React.CSSProperties = {
+  fontSize: "30px",
   fontWeight: "bold",
+  color: "#1e293b",
 };
 
 // Input
-const inputStyle = {
-  padding: "14px",
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
   border:
-    "1px solid #dbe2ea",
-  borderRadius: "14px",
-  fontSize: "15px",
+    "1px solid #c4b5fd",
+  borderRadius: "12px",
+  outline: "none",
+  fontSize: "14px",
+  fontWeight: 600,
+  boxSizing: "border-box",
+  background: "#fff",
+  color: "#0f172a",
+  caretColor: "#7c3aed",
+};
+
+// Textarea
+const textareaStyle: React.CSSProperties = {
+  width: "100%",
+  minHeight: "120px",
+  border:
+    "1px solid #c4b5fd",
+  borderRadius: "12px",
+  padding: "12px 14px",
+  resize: "vertical",
+  outline: "none",
+  fontSize: "14px",
+  fontWeight: 600,
+  boxSizing: "border-box",
+  color: "#0f172a",
+  background: "#fff",
+  caretColor: "#7c3aed",
 };
 
 // 青Button
-const blueButton = {
-  padding: "14px 24px",
-  background: "#4f46e5",
-  color: "white",
+const blueButton: React.CSSProperties = {
+  padding: "12px 18px",
+  background:
+    "linear-gradient(to right,#7c3aed,#6366f1)",
+  color: "#fff",
   border: "none",
   borderRadius: "14px",
   cursor: "pointer",
-  fontSize: "15px",
-};
-
-// 緑Button
-const greenButton = {
-  padding: "14px 20px",
-  background: "#d1fae5",
-  color: "#047857",
-  border: "none",
-  borderRadius: "14px",
-  cursor: "pointer",
-};
-
-// 赤Button
-const redButton = {
-  padding: "14px 20px",
-  background: "#fee2e2",
-  color: "#dc2626",
-  border: "none",
-  borderRadius: "14px",
-  cursor: "pointer",
-};
-
-// ラベル
-const labelStyle = {
-  marginBottom: "10px",
+  fontSize: "14px",
   fontWeight: "bold",
 };
 
-// 小ボタン
-const miniButton = {
-  padding: "10px 16px",
-  background: "#ede9fe",
+// 緑Button
+const greenButton: React.CSSProperties = {
+  padding: "9px 12px",
+  background: "#dcfce7",
+  color: "#15803d",
   border: "none",
-  borderRadius: "12px",
-  color: "#6d28d9",
+  borderRadius: "10px",
   cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "bold",
+};
+
+// 赤Button
+const redButton: React.CSSProperties = {
+  padding: "9px 12px",
+  background: "#fee2e2",
+  color: "#dc2626",
+  border: "none",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "bold",
+};
+
+// ラベル
+const labelStyle: React.CSSProperties = {
+  marginBottom: "8px",
+  fontWeight: "bold",
+  color: "#5b21b6",
+  fontSize: "14px",
+};
+
+// Status
+const statusBadge: React.CSSProperties = {
+  borderRadius: "999px",
+  padding: "5px 9px",
+  fontSize: "11px",
+  fontWeight: "bold",
+  whiteSpace: "nowrap",
+};
+
+// Task
+const taskItem: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "12px",
+  border:
+    "1px solid #ede9fe",
+  borderRadius: "14px",
+  padding: "12px 14px",
+  minWidth: 0,
+  boxSizing: "border-box",
+  background: "#fff",
+};
+
+const taskMetaText: React.CSSProperties = {
+  color: "#64748b",
+  fontSize: "12px",
+  fontWeight: "bold",
 };
 
 // メモアイテム
-const memoItem = {
-  padding: "18px",
+const memoItem: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: "12px",
+  padding: "14px",
   border:
     "1px solid #e2e8f0",
   borderRadius: "14px",
-  marginBottom: "14px",
+  background: "#fff",
 };
 
 // スケジュール
-const scheduleItem = {
-  padding: "18px",
+const scheduleItem: React.CSSProperties = {
+  padding: "14px",
   borderLeft:
     "4px solid #6366f1",
   background: "#f8fafc",
-  borderRadius: "10px",
-  marginBottom: "16px",
+  borderRadius: "12px",
+  marginBottom: "12px",
+};
+
+// Empty
+const emptyText: React.CSSProperties = {
+  color: "#94a3b8",
+  fontSize: "14px",
+  padding: "14px",
+  border:
+    "1px dashed #cbd5e1",
+  borderRadius: "12px",
+  background: "#f8fafc",
 };
