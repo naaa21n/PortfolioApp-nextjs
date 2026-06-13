@@ -46,7 +46,7 @@ export default function StepCalendar({
             const health =
                 healths.find(
                 (h) =>
-                    h.date === date
+                    h.recordDate === date
                 );
   
             return health?.steps || 0;

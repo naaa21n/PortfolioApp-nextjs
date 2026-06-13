@@ -29,7 +29,7 @@ export default function DashboardCard({
 
   const todayHealth =
     healths.find(
-      (h) => h.date === today
+      (h) => h.recordDate === today
     );
 
   const todaySteps =
@@ -148,7 +148,7 @@ function calculateStreak(
         (h) =>
           (h.steps || 0) > 0
       )
-      .map((h) => h.date)
+      .map((h) => h.recordDate)
       .sort()
       .reverse();
 

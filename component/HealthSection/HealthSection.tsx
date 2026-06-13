@@ -14,7 +14,7 @@ import HealthForm from "./HealthForm";
 import DiaryList from "./DiaryList";
 import ActivityLog from "./ActivityLog";
 import BalanceChart from "./BalanceChart";
-import JournalSection from "./JournalSection";
+import JournalForm from "./JournalForm";
 
 import Layout from "../layout/Layout";
 
@@ -73,13 +73,13 @@ export default function HealthSection() {
 
   const selectedJournal =
     journals.find(
-      (j) => j.date === selectedDate
+      (j) => j.journalDate === selectedDate
     ) || null;
 
   const selectedActivity =
     activities.find(
       (a) =>
-        a.date === selectedDate
+        a.recordDate === selectedDate
     ) || null;
 
 
@@ -101,7 +101,7 @@ export default function HealthSection() {
 
   const loadHealths = async () => {
     try {
-      const response = await apiFetch("/api/healths");
+      const response = await apiFetch("/api/health/records");
       const data = await response.json();
 
       setHealths(Array.isArray(data) ? data : []);
@@ -116,7 +116,7 @@ export default function HealthSection() {
 
   const loadActivities = async () => {
   try {
-    const response = await apiFetch("/api/activities");
+    const response = await apiFetch("/api/health/activities");
     const data = await response.json();
 
     setActivities(Array.isArray(data) ? data : []);
@@ -131,7 +131,7 @@ export default function HealthSection() {
 
   const loadJournals = async () => {
   try {
-    const response = await apiFetch("/api/journals");
+    const response = await apiFetch("/api/health/journals");
     const data = await response.json();
 
     setJournals(Array.isArray(data) ? data : []);
@@ -150,7 +150,7 @@ export default function HealthSection() {
   
     const health =
       healths.find(
-        (h) => h.date === date
+        (h) => h.recordDate === date
       ) || null;
   
     setSelectedHealth(health);
@@ -279,7 +279,7 @@ export default function HealthSection() {
   
           <DiaryList />
   
-          <JournalSection
+          <JournalForm
             selectedDate={selectedDate}
             selectedJournal={selectedJournal}
             onSaved={loadJournals}
