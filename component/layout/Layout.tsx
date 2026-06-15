@@ -2,6 +2,7 @@
 
 import React from "react";
 import Sidebar from "./Sidebar"; // 先ほど作成したSidebarのパスに合わせてください
+import AuthGuard from "../auth/AuthGuard";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,11 +11,12 @@ interface LayoutProps {
 
 export default function Layout({ children, currentPage }: LayoutProps) {
   return (
-    // 画面全体をFlexコンテナにし、背景色をベースに設定
-    <div className="flex min-h-screen bg-[#F0F2F9] font-sans">
+    <AuthGuard>
+      {/* 画面全体をFlexコンテナにし、背景色をベースに設定 */}
+      <div className="flex min-h-screen bg-[#F0F2F9] font-sans">
       
       {/* 左側：固定サイドバー */}
-      <Sidebar />
+      <Sidebar currentPage={currentPage} />
 
       {/* 右側：メインコンテンツエリア */}
       <main
@@ -29,6 +31,7 @@ export default function Layout({ children, currentPage }: LayoutProps) {
         {children}
       </main>
       
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

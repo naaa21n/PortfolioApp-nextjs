@@ -3,15 +3,19 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { 
   Sparkles, 
   SlidersHorizontal, 
   BookOpen, 
   Heart, 
-  Calendar, 
-  BarChart3, 
-  Settings 
+  Settings,
+  LogOut,
 } from "lucide-react";
+import {
+  clearAuthSession,
+  getAuthSession,
+} from "../lib/auth";
 
 const navItems = [
   { label: "タスクとメモ帳", href: "/tasks", icon: SlidersHorizontal },
@@ -21,11 +25,38 @@ const navItems = [
   //{ label: "統計・レポート", href: "/analytics", icon: BarChart3 },
 ];
 
-export default function Sidebar() {
+type SidebarProps = {
+  currentPage: string;
+};
+
+export default function Sidebar({
+  currentPage,
+}: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const session = getAuthSession();
+  const userName =
+    session?.user.name ||
+    session?.user.email ||
+    "ログイン中";
+  const userInitial =
+    userName.trim().charAt(0).toUpperCase() || "U";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Logout Error", error);
+    }
+
+    clearAuthSession();
+    router.replace("/login");
+  };
 
   return (
-    <aside style={{
+    <aside aria-label={`${currentPage} サイドバー`} style={{
       width: "260px",
       height: "100vh",
       backgroundColor: "#F9F9FE",
@@ -133,18 +164,21 @@ export default function Sidebar() {
               width: "44px",
               height: "44px",
               borderRadius: "50%",
-              backgroundColor: "#FFE3D1",
+              background:
+                "linear-gradient(to top right, #6366F1, #A855F7)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "20px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#fff",
               border: "2px solid #fff",
               boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
             }}>
-              👦
+              {userInitial}
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "13px", fontWeight: "bold", color: "#2A2C3D" }}>がんばり中！</span>
+              <span style={{ fontSize: "13px", fontWeight: "bold", color: "#2A2C3D" }}>{userName}</span>
               <span style={{
                 fontSize: "11px",
                 fontWeight: "black",
@@ -155,7 +189,7 @@ export default function Sidebar() {
                 marginTop: "2px",
                 width: "max-content"
               }}>
-                Lv.12
+                ログイン済み
               </span>
             </div>
           </div>
@@ -175,6 +209,28 @@ export default function Sidebar() {
               <span style={{ color: "#6366F1" }}>あと 320 XP</span>
             </div>
           </div>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #E5E7EB",
+              borderRadius: "10px",
+              background: "#fff",
+              color: "#5C5F79",
+              fontSize: "13px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            <LogOut style={{ width: "16px", height: "16px" }} />
+            ログアウト
+          </button>
         </div>
       </div>
 
