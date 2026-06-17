@@ -1,30 +1,51 @@
 "use client";
 
+// このファイルは、タスク一覧・タスク追加・完了切替・削除と、
+// 画面内だけで使う簡易メモ帳を表示するクライアントコンポーネントです。
+// タスク操作は apiFetch を通して Next.js のBFFへ送り、そこからSpring Bootへ中継します。
+
 // =========================
 // Import
 // =========================
 
-import { useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 // 共通レイアウト
 //
 // Sidebar込み画面
 import Layout from "./layout/Layout";
+import { apiFetch } from "./lib/api";
 
 // =========================
 // Type
 // =========================
 
 type Task = {
+  // Spring Boot側で採番されたタスクID
   id: string;
+
+  // タスク名
   title: string;
+
+  // 実際に取り組む日付
   taskDate: string;
+
+  // タスクの期限日
   deadline: string;
+
+  // タスクの詳細説明
   content: string;
+
+  // 完了済みかどうか
   completed: boolean;
 };
 
 type Memo = {
+  // メモは現状画面内だけで管理するため、Date.now()由来のIDを使う
   id: string;
   title: string;
   content: string;
@@ -44,34 +65,11 @@ export default function TasksPage() {
   // State
   // =========================
 
+  // Spring Bootから取得したタスク一覧を保持する
   const [tasks, setTasks] =
-    useState<Task[]>([
-      {
-        id: "task-1",
-        title: "朝勉強",
-        taskDate: todayDateKey,
-        deadline: todayDateKey,
-        content: "Java Spring BootのEntity設計を確認する",
-        completed: true,
-      },
-      {
-        id: "task-2",
-        title: "ジム",
-        taskDate: todayDateKey,
-        deadline: todayDateKey,
-        content: "30分だけ運動する",
-        completed: false,
-      },
-      {
-        id: "task-3",
-        title: "読書",
-        taskDate: todayDateKey,
-        deadline: todayDateKey,
-        content: "寝る前に20分読む",
-        completed: false,
-      },
-    ]);
+    useState<Task[]>([]);
 
+  // メモはまだAPI連携せず、この画面内のstateだけで管理する
   const [memos, setMemos] =
     useState<Memo[]>([
       {
@@ -91,6 +89,7 @@ export default function TasksPage() {
       },
     ]);
 
+  // Task
   const [taskTitle, setTaskTitle] =
     useState("");
 
@@ -103,6 +102,7 @@ export default function TasksPage() {
   const [taskContent, setTaskContent] =
     useState("");
 
+  // Memo
   const [memoTitle, setMemoTitle] =
     useState("");
 
@@ -113,38 +113,45 @@ export default function TasksPage() {
   // Derived Data
   // =========================
 
+  // 今日の日付に該当するタスクだけを抽出する
   const todayTasks =
     tasks.filter(
       (task) =>
         task.taskDate === todayDateKey
     );
 
+  // 今日のタスクのうち、完了済みのものだけを数える
   const completedTodayTasks =
     todayTasks.filter(
       (task) => task.completed
     );
 
+  // 全タスクのうち、完了済みのものだけを抽出する
   const completedTasks =
     tasks.filter(
       (task) => task.completed
     );
 
+  // 全タスクのうち、未完了のものだけを抽出する
   const incompleteTasks =
     tasks.filter(
       (task) => !task.completed
     );
 
+  // 今週の達成率を出すため、今週の日付に該当するタスクだけを抽出する
   const thisWeekTasks =
     tasks.filter(
       (task) =>
         isThisWeek(task.taskDate)
     );
 
+  // 今週のタスクのうち、完了済みのものだけを抽出する
   const completedThisWeekTasks =
     thisWeekTasks.filter(
       (task) => task.completed
     );
 
+  // 今週のタスクが0件の場合は0%、それ以外は完了数 / 全体数で達成率を計算する
   const weeklyRate =
     thisWeekTasks.length === 0
       ? 0
@@ -159,7 +166,51 @@ export default function TasksPage() {
   // Task Function
   // =========================
 
-  const addTask = () => {
+  // タスク一覧をSpring Bootから取得する
+  //
+  // ブラウザからは /api/tasks にアクセスするが、
+  // 実際には app/api/[...path]/route.ts を経由して Spring Boot の /api/tasks へ中継される
+  const loadTasks = useCallback(async () => {
+    try {
+      // 共通API関数を使用してタスク記録を取得
+      const res = await apiFetch("/api/tasks");
+      const data = await res.json();
+
+      setTasks(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Task 読み込みの失敗", error);
+    }
+  }, []);
+
+  const loadMemos = useCallback(async () => {
+    try {
+      // 共通API関数を使用してタスク記録を取得
+      const res = await apiFetch("/api/memos");
+      const data = await res.json();
+
+      setMemos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Memo 読み込みの失敗", error);
+    }
+  }, []);
+
+  // 画面初回表示時にタスク一覧を取得する
+  //
+  // setTimeoutを挟んでいるのは、このプロジェクトのlintルールで
+  // useEffect内から状態更新につながる処理を直接呼ぶ警告を避けるため
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadTasks();
+      loadMemos();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadTasks,loadMemos]);
+
+  // 入力フォームの内容をSpring BootへPOSTして、新しいタスクを作成する
+  const addTask = async () => {
 
     if (
       !taskTitle.trim() ||
@@ -172,8 +223,9 @@ export default function TasksPage() {
       return;
     }
 
-    const newTask: Task = {
-      id: String(Date.now()),
+    // Spring Bootへ送るJSON
+    // idはSpring Boot側で作る想定なので、フロントからは送らない
+    const body = {
       title: taskTitle,
       taskDate,
       deadline,
@@ -181,51 +233,70 @@ export default function TasksPage() {
       completed: false,
     };
 
-    setTasks([
-      newTask,
-      ...tasks,
-    ]);
+    try {
+      // POST /api/tasks
+      //
+      // apiFetchがContent-Typeを付け、BFF経由でSpring Bootへ送る
+      await apiFetch("/api/tasks", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
 
-    setTaskTitle("");
-    setTaskDate(todayDateKey);
-    setDeadline(todayDateKey);
-    setTaskContent("");
+      // 保存成功後は入力欄を初期状態に戻す
+      setTaskTitle("");
+      setTaskDate(todayDateKey);
+      setDeadline(todayDateKey);
+      setTaskContent("");
+
+      // サーバー側の最新状態を画面へ反映するため、一覧を再取得する
+      loadTasks();
+    } catch (error) {
+      console.error("Task 追加の失敗", error);
+    }
   };
 
-  const toggleTaskDone = (
+  // 指定IDのタスクを完了/未完了に切り替える
+  //
+  // Spring Boot側のAPI設計に合わせて PUT /api/tasks/{id}/done を呼ぶ
+  const toggleTaskDone = async (
     id: string
   ) => {
 
-    setTasks(
-      tasks.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              completed:
-                !task.completed,
-            }
-          : task
-      )
-    );
+    try {
+      await apiFetch(`/api/tasks/${id}/done`, {
+        method: "PUT",
+      });
+
+      // 更新後のcompleted状態はサーバー側を正として、再取得して反映する
+      loadTasks();
+    } catch (error) {
+      console.error("Task 更新の失敗", error);
+    }
   };
 
-  const deleteTask = (
+  // 指定IDのタスクをSpring Bootから削除する
+  const deleteTask = async (
     id: string
   ) => {
 
-    setTasks(
-      tasks.filter(
-        (task) =>
-          task.id !== id
-      )
-    );
+    try {
+      // DELETE /api/tasks/{id}
+      await apiFetch(`/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+
+      // 削除後の一覧を取り直して、画面にも削除結果を反映する
+      loadTasks();
+    } catch (error) {
+      console.error("Task 削除の失敗", error);
+    }
   };
 
   // =========================
   // Memo Function
   // =========================
 
-  const addMemo = () => {
+  const addMemo = async () => {
 
     if (
       !memoTitle.trim() ||
@@ -237,31 +308,48 @@ export default function TasksPage() {
       return;
     }
 
-    const newMemo: Memo = {
-      id: String(Date.now()),
+    const body = {
       title: memoTitle,
+      taskDate,
+      deadline,
       content: memoContent,
     };
 
-    setMemos([
-      newMemo,
-      ...memos,
-    ]);
+    try {
+    // POST /api/tasks
+    //
+    // apiFetchがContent-Typeを付け、BFF経由でSpring Bootへ送る
+      await apiFetch("/api/memos", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
 
-    setMemoTitle("");
-    setMemoContent("");
+      setMemoTitle("");
+      setTaskDate(todayDateKey);
+      setDeadline(todayDateKey);
+      setMemoContent("");
+
+      loadMemos();
+    } catch (error) {
+        console.error("Task 追加の失敗", error);
+    }
   };
 
-  const deleteMemo = (
+  const deleteMemo = async (
     id: string
   ) => {
 
-    setMemos(
-      memos.filter(
-        (memo) =>
-          memo.id !== id
-      )
-    );
+    try {
+      // DELETE /api/tasks/{id}
+      await apiFetch(`/api/memos/${id}`, {
+        method: "DELETE",
+      });
+
+      // 削除後の一覧を取り直して、画面にも削除結果を反映する
+      loadMemos();
+    } catch(error){
+      console.error("Memo 削除が失敗", error);
+   }
   };
 
   return (
