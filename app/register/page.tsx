@@ -61,7 +61,7 @@ export default function RegisterPage() {
           // 現在はSpring Boot側で
           // 自動生成されるため
           // 本来不要
-          id: String(Date.now()),
+          //id: String(Date.now()),
 
           // 名前
           name,

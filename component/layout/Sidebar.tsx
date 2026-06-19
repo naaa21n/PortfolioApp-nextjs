@@ -37,7 +37,7 @@ export default function Sidebar({
   const session = getAuthSession();
   const userName =
     session?.user.name ||
-    session?.user.email ||
+    //session?.user.email ||
     "ログイン中";
   const userInitial =
     userName.trim().charAt(0).toUpperCase() || "U";
@@ -128,7 +128,7 @@ export default function Sidebar({
       {/* 下部エリア */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "auto" }}>
         {/* 設定 */}
-        <Link
+        {/*<Link
           href="/settings"
           style={{
             display: "flex",
@@ -145,6 +145,7 @@ export default function Sidebar({
           <Settings style={{ width: "18px", height: "18px", color: "#7C7F9B" }} />
           設定
         </Link>
+        */}
 
         <hr style={{ border: "none", borderTop: "1px solid #EBEBF5", margin: "4px 0" }} />
 

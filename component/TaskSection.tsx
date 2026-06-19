@@ -259,19 +259,23 @@ export default function TasksPage() {
   //
   // Spring Boot側のAPI設計に合わせて PUT /api/tasks/{id}/done を呼ぶ
   const toggleTaskDone = async (
-    id: string
+    id: string,
+    completed: boolean
   ) => {
 
-    try {
-      await apiFetch(`/api/tasks/${id}/done`, {
-        method: "PUT",
-      });
+    const statusPath =
+      completed
+        ? "undone"
+        : "done";
 
-      // 更新後のcompleted状態はサーバー側を正として、再取得して反映する
-      loadTasks();
-    } catch (error) {
-      console.error("Task 更新の失敗", error);
-    }
+    await apiFetch(
+      `/api/tasks/${id}/${statusPath}`,
+      {
+        method: "PUT",
+      }
+    );
+
+    await loadTasks();
   };
 
   // 指定IDのタスクをSpring Bootから削除する
@@ -839,7 +843,10 @@ export default function TasksPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          toggleTaskDone(task.id)
+                          toggleTaskDone(
+                            task.id,
+                            task.completed
+                          )
                         }
                         style={greenButton}
                       >

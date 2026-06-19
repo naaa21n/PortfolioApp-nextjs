@@ -16,10 +16,10 @@ type Learning = {
 
 type Book = {
   id: number;
-  title: string;
-  readMinutes: number;
+  bookTitle: string;
+  readingMinutes: number;
   readOn: string;
-  image: string;
+  imageUrl: string;
 };
 
 type CalendarDay = {
@@ -65,71 +65,10 @@ export default function LearningSection() {
   );
 
   const [graphDisplayDate, setGraphDisplayDate] =
-    useState("2025-06-16");
+    useState(() => toDateKey(new Date()));
 
-  const [books, setBooks] = useState<Book[]>([
-    {
-      id: 1,
-      title: "7つの習慣",
-      readMinutes: 120,
-      readOn: "2025-06-16",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 2,
-      title: "エッセンシャル思考",
-      readMinutes: 90,
-      readOn: "2025-06-17",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 3,
-      title: "影響力の武器",
-      readMinutes: 60,
-      readOn: "2025-06-18",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 4,
-      title: "THINK AGAIN",
-      readMinutes: 45,
-      readOn: "2025-06-19",
-      image: "https://placehold.co/60x80",
-    },
-  ]);
-
-  const [sampleLearnings, setSampleLearnings] = useState<Learning[]>([
-    {
-      id: "sample-1",
-      title: "React学習",
-      studyMinutes: 240,
-      studiedOn: "2025-06-16",
-    },
-    {
-      id: "sample-2",
-      title: "TypeScript学習",
-      studyMinutes: 360,
-      studiedOn: "2025-06-17",
-    },
-    {
-      id: "sample-3",
-      title: "Next.js学習",
-      studyMinutes: 120,
-      studiedOn: "2025-06-18",
-    },
-    {
-      id: "sample-4",
-      title: "API連携学習",
-      studyMinutes: 420,
-      studiedOn: "2025-06-19",
-    },
-    {
-      id: "sample-5",
-      title: "UI実装学習",
-      studyMinutes: 300,
-      studiedOn: "2025-06-20",
-    },
-  ]);
+  // デフォルトデータは使用せず、Spring Bootから取得したデータだけを保持する
+  const [books, setBooks] = useState<Book[]>([]);
 
   useEffect(() => {
     loadLearnings();
@@ -195,6 +134,7 @@ export default function LearningSection() {
     }
   };
 
+  // 読書枠の追加
   const addBook = async () => {
     if (!bookTitle || !bookTime || !bookDate) {
       alert("本のタイトル・読書時間・読書日を入力してください");
@@ -211,9 +151,10 @@ export default function LearningSection() {
         //},
         body: JSON.stringify({
           //id: String(Date.now()),
-          title: bookTitle,
-          readMinutes: Number(bookTime),
+          bookTitle: bookTitle,
+          readingMinutes: Number(bookTime),
           readOn: bookDate,
+          imageUrl: null,
         }),
       });
 
@@ -258,26 +199,6 @@ export default function LearningSection() {
     }
   };
 
-/*
-  const deleteDisplayedLearning = (
-    id: string
-  ) => {
-
-    try {
-      if (id.startsWith("sample-")) {
-        setSampleLearnings(
-          sampleLearnings.filter((item) => item.id !== id)
-        );
-        return;
-      }
-
-      deleteLearning(id);
-    } catch(error){
-      console.error("Memo 削除が失敗", error);
-    }
-  };
-*/
-
   const deleteBook = async (id: number) => {
     try {
       // 共通API関数を使って指定IDの学習記録を削除する
@@ -292,8 +213,9 @@ export default function LearningSection() {
     //setBooks(books.filter((book) => book.id !== id));
   };
 
+  // デフォルトデータへ切り替えず、取得した学習記録だけを表示する
   const displayLearnings =
-    learnings.length > 0 ? learnings : sampleLearnings;
+    learnings;
 
   const weekGraphData = Array.from({ length: 7 }).map((_, index) => {
     const dateKey = addDaysToDateKey(graphDisplayDate, index - 6);
@@ -315,7 +237,7 @@ export default function LearningSection() {
         return total;
       }
 
-      return total + Number(book.readMinutes || 0);
+      return total + Number(book.readingMinutes || 0);
     }, 0);
 
     return {
@@ -1391,8 +1313,8 @@ export default function LearningSection() {
                       }}
                     >
                       <img
-                        src={book.image}
-                        alt={book.title}
+                        src={book.imageUrl}
+                        alt={book.bookTitle}
                         style={{
                           width: "38px",
                           height: "52px",
@@ -1412,7 +1334,7 @@ export default function LearningSection() {
                             wordBreak: "break-word",
                           }}
                         >
-                          {book.title}
+                          {book.bookTitle}
                         </div>
 
                         <div
@@ -1421,7 +1343,7 @@ export default function LearningSection() {
                             fontSize: "12px",
                           }}
                         >
-                          読書時間：{formatMinutesLabel(book.readMinutes)}
+                          読書時間：{formatMinutesLabel(book.readingMinutes)}
                         </div>
 
                         <div
@@ -1456,7 +1378,14 @@ export default function LearningSection() {
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
-const normalizeDateKey = (dateText: string) => {
+const normalizeDateKey = (
+  dateText: string | null | undefined
+) => {
+
+  if (!dateText) {
+    return "";
+  }
+
   const text = dateText.trim();
 
   const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
