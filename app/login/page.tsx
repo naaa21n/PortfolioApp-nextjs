@@ -6,10 +6,15 @@
 
 // ページ遷移用Link
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // React State管理
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/component/lib/api";
+import {
+  getAuthSession,
+  saveAuthSession,
+} from "@/component/lib/auth";
 
 // =========================
 // Login Page
@@ -17,6 +22,7 @@ import { apiFetch } from "@/component/lib/api";
 
 // ログイン画面
 export default function LoginPage() {
+  const router = useRouter();
 
   // =========================
   // State
@@ -30,12 +36,35 @@ export default function LoginPage() {
   const [password, setPassword] =
     useState("");
 
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  useEffect(() => {
+    if (getAuthSession()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
   // =========================
   // Login Function
   // =========================
 
   // ログイン処理
   const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage(
+        "メールアドレスとパスワードを入力してください"
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
 
     // Spring Boot APIへPOST通信
     const response = await apiFetch(
@@ -64,26 +93,43 @@ export default function LoginPage() {
     // console確認
     console.log(text);
 
-    try {
-
       // JSON変換
       const data = JSON.parse(text);
 
       // メッセージ表示
-      alert(data.message);
+      if (data.message) {
+        alert(data.message);
+      }
 
       // ログイン成功時
-      if (data.success) {
+      if (
+        data.success ||
+        data.token ||
+        data.accessToken ||
+        data.jwt
+      ) {
+        saveAuthSession(data, email);
 
         // Dashboardへ遷移
-        window.location.href =
-          "/dashboard";
+        router.push("/dashboard");
+        return;
       }
+
+      setErrorMessage(
+        data.message ||
+          "ログインに失敗しました"
+      );
 
     } catch (error) {
 
-      // JSON変換失敗時
-      console.error(text);
+      console.error(error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "ログインに失敗しました"
+      );
+    } finally {
+      setIsLoading(false);
 
     }
   };
@@ -198,10 +244,27 @@ export default function LoginPage() {
           {/* Login Button */}
           <button
             onClick={handleLogin}
-            style={buttonStyle}
+            disabled={isLoading}
+            style={{
+              ...buttonStyle,
+              opacity: isLoading ? 0.7 : 1,
+            }}
           >
-            ログイン
+            {isLoading ? "ログイン中..." : "ログイン"}
           </button>
+
+          {errorMessage && (
+            <p
+              style={{
+                color: "#dc2626",
+                fontSize: "14px",
+                margin: 0,
+                textAlign: "center",
+              }}
+            >
+              {errorMessage}
+            </p>
+          )}
 
         </div>
 

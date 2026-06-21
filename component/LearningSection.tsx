@@ -10,16 +10,16 @@ import { apiFetch } from "./lib/api";
 type Learning = {
   id: string;
   title: string;
-  studyTime: number;
-  studyDate: string;
+  studyMinutes: number;
+  studiedOn: string;
 };
 
 type Book = {
   id: number;
-  title: string;
-  readTime: number;
-  readDate: string;
-  image: string;
+  bookTitle: string;
+  readingMinutes: number;
+  readOn: string;
+  imageUrl: string;
 };
 
 type CalendarDay = {
@@ -54,7 +54,7 @@ export default function LearningSection() {
 
   const [studyTitle, setStudyTitle] = useState("");
   const [studyTime, setStudyTime] = useState("");
-  const [studyDate, setStudyDate] = useState("");
+  const [studyDate, setStudyData] = useState("");
 
   const [bookTitle, setBookTitle] = useState("");
   const [bookTime, setBookTime] = useState("");
@@ -65,83 +65,37 @@ export default function LearningSection() {
   );
 
   const [graphDisplayDate, setGraphDisplayDate] =
-    useState("2025-06-16");
+    useState(() => toDateKey(new Date()));
 
-  const [books, setBooks] = useState<Book[]>([
-    {
-      id: 1,
-      title: "7つの習慣",
-      readTime: 120,
-      readDate: "2025-06-16",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 2,
-      title: "エッセンシャル思考",
-      readTime: 90,
-      readDate: "2025-06-17",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 3,
-      title: "影響力の武器",
-      readTime: 60,
-      readDate: "2025-06-18",
-      image: "https://placehold.co/60x80",
-    },
-    {
-      id: 4,
-      title: "THINK AGAIN",
-      readTime: 45,
-      readDate: "2025-06-19",
-      image: "https://placehold.co/60x80",
-    },
-  ]);
-
-  const [sampleLearnings, setSampleLearnings] = useState<Learning[]>([
-    {
-      id: "sample-1",
-      title: "React学習",
-      studyTime: 240,
-      studyDate: "2025-06-16",
-    },
-    {
-      id: "sample-2",
-      title: "TypeScript学習",
-      studyTime: 360,
-      studyDate: "2025-06-17",
-    },
-    {
-      id: "sample-3",
-      title: "Next.js学習",
-      studyTime: 120,
-      studyDate: "2025-06-18",
-    },
-    {
-      id: "sample-4",
-      title: "API連携学習",
-      studyTime: 420,
-      studyDate: "2025-06-19",
-    },
-    {
-      id: "sample-5",
-      title: "UI実装学習",
-      studyTime: 300,
-      studyDate: "2025-06-20",
-    },
-  ]);
+  // デフォルトデータは使用せず、Spring Bootから取得したデータだけを保持する
+  const [books, setBooks] = useState<Book[]>([]);
 
   useEffect(() => {
     loadLearnings();
+    loadBooks();
   }, []);
 
+  // 学習枠の読み込み処理
   const loadLearnings = async () => {
     try {
       // 共通API関数を使って学習記録を取得する
-      const res = await apiFetch("/api/learnings");
+      const res = await apiFetch("/api/learning/records");
       const data = await res.json();
 
       setLearnings(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // 読書枠の読み込み処理
+  const loadBooks = async () => {
+    try {
+      // 共通API関数を使って学習記録を取得する
+      const res = await apiFetch("/api/learning/readings");
+      const data = await res.json();
+
+      setBooks(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     }
@@ -156,23 +110,23 @@ export default function LearningSection() {
     try {
       // 共通API関数を使って学習記録を追加する
       // Content-Type は apiFetch 側で自動設定されるため、ここでは headers を書かない
-      await apiFetch("/api/learnings", {
+      await apiFetch("/api/learning/records", {
         method: "POST",
         //共通化で記載されたため
         //headers: {
         //  "Content-Type": "application/json",
         //},
         body: JSON.stringify({
-          id: String(Date.now()),
+          //id: String(Date.now()),
           title: studyTitle,
-          studyTime: Number(studyTime),
-          studyDate,
+          studyMinutes: Number(studyTime),
+          studiedOn: studyDate,
         }),
       });
 
       setStudyTitle("");
       setStudyTime("");
-      setStudyDate("");
+      setStudyData("");
 
       loadLearnings();
     } catch (error) {
@@ -180,12 +134,41 @@ export default function LearningSection() {
     }
   };
 
-  const addBook = () => {
+  // 読書枠の追加
+  const addBook = async () => {
     if (!bookTitle || !bookTime || !bookDate) {
       alert("本のタイトル・読書時間・読書日を入力してください");
       return;
     }
+    try {
+      // 共通API関数を使って学習記録を追加する
+      // Content-Type は apiFetch 側で自動設定されるため、ここでは headers を書かない
+      await apiFetch("/api/learning/readings", {
+        method: "POST",
+        //共通化で記載されたため
+        //headers: {
+        //  "Content-Type": "application/json",
+        //},
+        body: JSON.stringify({
+          //id: String(Date.now()),
+          bookTitle: bookTitle,
+          readingMinutes: Number(bookTime),
+          readOn: bookDate,
+          imageUrl: null,
+        }),
+      });
 
+      setBookTitle("");
+      setBookTime("");
+      setBookDate("");
+
+      loadBooks();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /*
     setBooks([
       ...books,
       {
@@ -201,11 +184,12 @@ export default function LearningSection() {
     setBookTime("");
     setBookDate("");
   };
+  */
 
   const deleteLearning = async (id: string) => {
     try {
       // 共通API関数を使って指定IDの学習記録を削除する
-      await apiFetch(`/api/learnings/${id}`, {
+      await apiFetch(`/api/learning/records/${id}`, {
         method: "DELETE",
       });
 
@@ -215,45 +199,45 @@ export default function LearningSection() {
     }
   };
 
-  const deleteDisplayedLearning = (id: string) => {
-    if (id.startsWith("sample-")) {
-      setSampleLearnings(
-        sampleLearnings.filter((item) => item.id !== id)
-      );
-      return;
+  const deleteBook = async (id: number) => {
+    try {
+      // 共通API関数を使って指定IDの学習記録を削除する
+      await apiFetch(`/api/learning/readings/${id}`, {
+        method: "DELETE",
+      });
+
+      loadBooks();
+    } catch (error) {
+      console.error(error);
     }
-
-    deleteLearning(id);
+    //setBooks(books.filter((book) => book.id !== id));
   };
 
-  const deleteBook = (id: number) => {
-    setBooks(books.filter((book) => book.id !== id));
-  };
-
+  // デフォルトデータへ切り替えず、取得した学習記録だけを表示する
   const displayLearnings =
-    learnings.length > 0 ? learnings : sampleLearnings;
+    learnings;
 
   const weekGraphData = Array.from({ length: 7 }).map((_, index) => {
     const dateKey = addDaysToDateKey(graphDisplayDate, index - 6);
 
     const studyMinutesTotal = displayLearnings.reduce((total, item) => {
-      const itemDateKey = normalizeDateKey(item.studyDate);
+      const itemDateKey = normalizeDateKey(item.studiedOn);
 
       if (itemDateKey !== dateKey) {
         return total;
       }
 
-      return total + Number(item.studyTime || 0);
+      return total + Number(item.studyMinutes || 0);
     }, 0);
 
     const bookMinutesTotal = books.reduce((total, book) => {
-      const bookDateKey = normalizeDateKey(book.readDate);
+      const bookDateKey = normalizeDateKey(book.readOn);
 
       if (bookDateKey !== dateKey) {
         return total;
       }
 
-      return total + Number(book.readTime || 0);
+      return total + Number(book.readingMinutes || 0);
     }, 0);
 
     return {
@@ -279,13 +263,13 @@ export default function LearningSection() {
 
   const studyMarkedDateKeys = new Set(
     displayLearnings
-      .map((item) => normalizeDateKey(item.studyDate))
+      .map((item) => normalizeDateKey(item.studiedOn))
       .filter(Boolean)
   );
 
   const bookMarkedDateKeys = new Set(
     books
-      .map((book) => normalizeDateKey(book.readDate))
+      .map((book) => normalizeDateKey(book.readOn))
       .filter(Boolean)
   );
 
@@ -504,7 +488,7 @@ export default function LearningSection() {
                     <input
                       type="date"
                       value={studyDate}
-                      onChange={(e) => setStudyDate(e.target.value)}
+                      onChange={(e) => setStudyData(e.target.value)}
                       style={formInputStyle(activeTab, Boolean(studyDate))}
                     />
                   </div>
@@ -1249,7 +1233,7 @@ export default function LearningSection() {
                             fontWeight: "bold",
                           }}
                         >
-                          学習時間：{formatMinutesLabel(item.studyTime)}
+                          学習時間：{formatMinutesLabel(item.studyMinutes)}
                         </div>
 
                         <div
@@ -1259,14 +1243,14 @@ export default function LearningSection() {
                             marginTop: "2px",
                           }}
                         >
-                          学習日：{item.studyDate}
+                          学習日：{item.studiedOn}
                         </div>
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => deleteDisplayedLearning(item.id)}
+                      onClick={() => deleteLearning(item.id)}
                       style={compactDeleteButtonStyle}
                     >
                       削除
@@ -1329,8 +1313,8 @@ export default function LearningSection() {
                       }}
                     >
                       <img
-                        src={book.image}
-                        alt={book.title}
+                        src={book.imageUrl}
+                        alt={book.bookTitle}
                         style={{
                           width: "38px",
                           height: "52px",
@@ -1350,7 +1334,7 @@ export default function LearningSection() {
                             wordBreak: "break-word",
                           }}
                         >
-                          {book.title}
+                          {book.bookTitle}
                         </div>
 
                         <div
@@ -1359,7 +1343,7 @@ export default function LearningSection() {
                             fontSize: "12px",
                           }}
                         >
-                          読書時間：{formatMinutesLabel(book.readTime)}
+                          読書時間：{formatMinutesLabel(book.readingMinutes)}
                         </div>
 
                         <div
@@ -1369,7 +1353,7 @@ export default function LearningSection() {
                             marginTop: "2px",
                           }}
                         >
-                          読書日：{book.readDate}
+                          読書日：{book.readOn}
                         </div>
                       </div>
                     </div>
@@ -1394,7 +1378,14 @@ export default function LearningSection() {
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
-const normalizeDateKey = (dateText: string) => {
+const normalizeDateKey = (
+  dateText: string | null | undefined
+) => {
+
+  if (!dateText) {
+    return "";
+  }
+
   const text = dateText.trim();
 
   const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);

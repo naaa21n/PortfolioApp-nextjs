@@ -1,7 +1,6 @@
 // lib/api.ts
 
-// .env.local などで定義した環境変数をまとめている env を読み込む
-import { env } from "./env";
+import { clearAuthSession } from "./auth";
 
 /**
  * API通信を共通化するための関数
@@ -26,9 +25,9 @@ export const apiFetch = async (
   const hasBody = options.body !== undefined;
 
   // 実際にAPI通信を行う
-  // env.apiBaseUrl と path を結合して完全なURLを作る
-  // 例: "http://localhost:8080" + "/api/learnings"
-  const res = await fetch(`${env.apiBaseUrl}${path}`, {
+  // Next.jsのRoute Handlerへ送る
+  // Spring BootへはNext.jsサーバー側から中継する
+  const res = await fetch(path, {
     // 呼び出し側から渡されたfetch設定を展開する
     // 例: method: "POST", body: JSON.stringify(...) など
     ...options,
@@ -45,8 +44,7 @@ export const apiFetch = async (
       ...(hasBody ? { "Content-Type": "application/json" } : {}),
 
       // 呼び出し側で追加のheadersが指定されていれば、それも反映する
-      // 例: 後でJWTを追加する場合
-      // Authorization: `Bearer ${token}`
+      // 例: 特別なヘッダーを追加する場合
       //
       // ここを最後に書くことで、呼び出し側のheadersで上書きもできる
       ...options.headers,
@@ -56,6 +54,14 @@ export const apiFetch = async (
   // HTTPステータスが成功ではない場合
   // 例: 400, 401, 404, 500 など
   if (!res.ok) {
+    if (
+      res.status === 401 &&
+      typeof window !== "undefined"
+    ) {
+      clearAuthSession();
+      window.location.href = "/login";
+    }
+
     // エラーを発生させる
     // 呼び出し元の catch で受け取れる
     throw new Error(`API request failed: ${res.status}`);

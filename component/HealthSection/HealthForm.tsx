@@ -1,123 +1,227 @@
 "use client";
 
 import {
-    useEffect,
-    useState,
-  } from "react";
+  useEffect,
+  useState,
+} from "react";
+
 import { apiFetch } from "../lib/api";
-import { Health } from "../types/health" // 型インポート
+import { Health } from "../types/health";
 
-/*
-type Health = {
-  id: string;
-  date: string;
-  steps: number;
-  exerciseMinutes: number;
-  sleepHours: number;
-  waterMl: number;
-};
-*/
-
+// =========================
+// Props
+// =========================
+//
+// 親コンポーネントから受け取る値
+//
 type Props = {
-    selectedDate: string;
-    selectedHealth?: Health | null;
-    onSaved: () => void;
-  };
+  // 選択中の日付
+  //
+  // 例:
+  // "2026-06-13"
+  selectedDate: string;
 
+  // 選択中の日付に対応する健康記録
+  //
+  // 既存データがある場合:
+  // Health
+  //
+  // 既存データがない場合:
+  // null / undefined
+  selectedHealth?: Health | null;
+
+  // 保存後に親コンポーネント側で
+  // 健康記録一覧を再取得するための関数
+  onSaved: () => void;
+};
+
+// =========================
+// HealthForm Component
+// =========================
+//
+// 健康記録入力フォーム
+//
+// 保存先:
+// POST /api/health/records
+//
+// 更新先:
+// PUT /api/health/records/{id}
+//
 export default function HealthForm({
   selectedDate,
   selectedHealth,
   onSaved,
 }: Props) {
+  // =========================
+  // State
+  // =========================
+  //
+  // 各入力値を管理する
+  //
 
-  const [steps, setSteps] =
-    useState(
-      selectedHealth?.steps || 0
-    );
+  // 歩数
+  const [steps, setSteps] = useState(
+    selectedHealth?.steps || 0
+  );
 
-  const [exerciseMinutes,
-    setExerciseMinutes] =
-    useState(
-      selectedHealth?.exerciseMinutes || 0
-    );
+  // 運動時間
+  const [
+    exerciseMinutes,
+    setExerciseMinutes,
+  ] = useState(
+    selectedHealth?.exerciseMinutes || 0
+  );
 
-  const [sleepHours,
-    setSleepHours] =
+  // 睡眠時間
+  const [sleepHours, setSleepHours] =
     useState(
       selectedHealth?.sleepHours || 0
     );
 
-  const [waterMl,
-    setWaterMl] =
+  // 水分摂取量
+  const [waterMl, setWaterMl] =
     useState(
       selectedHealth?.waterMl || 0
     );
 
-    useEffect(() => {
+  // =========================
+  // selectedHealth変更時の反映
+  // =========================
+  //
+  // カレンダーなどで日付を切り替えたときに、
+  // その日の既存データをフォームへ反映する
+  //
+  // selectedHealth が null の場合は、
+  // 新規入力として0に戻す
+  //
+  useEffect(() => {
+    setSteps(
+      selectedHealth?.steps || 0
+    );
 
-        setSteps(
-          selectedHealth?.steps || 0
-        );
-      
-        setExerciseMinutes(
-          selectedHealth?.exerciseMinutes || 0
-        );
-      
-        setSleepHours(
-          selectedHealth?.sleepHours || 0
-        );
-      
-        setWaterMl(
-          selectedHealth?.waterMl || 0
-        );
-      
-      }, [selectedHealth]);
+    setExerciseMinutes(
+      selectedHealth?.exerciseMinutes || 0
+    );
+
+    setSleepHours(
+      selectedHealth?.sleepHours || 0
+    );
+
+    setWaterMl(
+      selectedHealth?.waterMl || 0
+    );
+  }, [selectedHealth, selectedDate]);
 
   // =========================
-  // 保存
+  // 保存処理
   // =========================
-
-  console.log("保存クリック");
-
+  //
+  // selectedHealth がある場合:
+  // 既存データ更新 PUT
+  //
+  // selectedHealth がない場合:
+  // 新規登録 POST
+  //
   const saveHealth = async () => {
+    console.log("健康記録 保存クリック");
 
+    // =========================
+    // Spring Bootへ送るJSON
+    // =========================
+    //
+    // 注意:
+    // id は送らない
+    //
+    // 理由:
+    // Spring Boot側で UUID が自動生成されるため
+    //
+    // 注意:
+    // date ではなく recordDate にする
+    //
+    // 理由:
+    // HealthRecord Entity側のフィールド名が
+    // recordDate だから
+    //
     const body = {
-      id:
-        selectedHealth?.id ||
-        String(Date.now()),
-  
-      date: selectedDate,
-  
-      steps,
-      exerciseMinutes,
-      sleepHours,
-      waterMl,
-    };
-  
-    const method =
-      selectedHealth
-        ? "PUT"
-        : "POST";
-    
-    const path =
-      selectedHealth
-        ? `/api/healths/${selectedHealth.id}`
-        : "/api/healths";
+      // 健康記録日
+      //
+      // Spring側:
+      // private LocalDate recordDate;
+      recordDate: selectedDate,
 
+      // 歩数
+      //
+      // Spring側:
+      // private Integer steps;
+      steps: Number(steps),
+
+      // 運動時間
+      //
+      // Spring側:
+      // private Integer exerciseMinutes;
+      exerciseMinutes: Number(exerciseMinutes),
+
+      // 睡眠時間
+      //
+      // Spring側:
+      // private Double sleepHours;
+      sleepHours: Number(sleepHours),
+
+      // 水分摂取量
+      //
+      // Spring側:
+      // private Integer waterMl;
+      waterMl: Number(waterMl),
+    };
+
+    console.log("Health POST/PUT body:", body);
+
+    // =========================
+    // POST / PUT 切り替え
+    // =========================
+    //
+    // selectedHealth がある場合は更新
+    // selectedHealth がない場合は新規作成
+    //
+    const method = selectedHealth
+      ? "PUT"
+      : "POST";
+
+    const path = selectedHealth
+      ? `/api/health/records/${selectedHealth.id}`
+      : "/api/health/records";
+
+    // =========================
+    // API呼び出し
+    // =========================
+    //
+    // apiFetch側で res.json() まで行う設計なら、
+    // response には保存後のHealthRecord JSONが入る
+    //
     const response = await apiFetch(path, {
       method,
       body: JSON.stringify(body),
     });
-  
+
     console.log(
-      response.status
+      "Health Save Response:",
+      response
     );
-  
+
+    // =========================
+    // 保存後の再読み込み
+    // =========================
+    //
+    // 親側で一覧を再取得する
+    //
     onSaved();
   };
 
-  return (
+  // =========================
+  // JSX
+  // =========================
 
+  return (
     <div
       style={{
         background: "#fff",
@@ -125,11 +229,11 @@ export default function HealthForm({
         padding: "24px",
       }}
     >
-
       <h3>
         📋 健康記録
       </h3>
 
+      {/* 選択中の日付 */}
       <div
         style={{
           color: "#64748b",
@@ -140,7 +244,6 @@ export default function HealthForm({
       </div>
 
       {/* 歩数 */}
-
       <div
         style={{
           marginBottom: "12px",
@@ -155,9 +258,9 @@ export default function HealthForm({
           value={steps}
           onChange={(e) =>
             setSteps(
-              Number(
-                e.target.value
-              )
+              e.target.value === ""
+                ? 0
+                : Number(e.target.value)
             )
           }
           style={inputStyle}
@@ -165,7 +268,6 @@ export default function HealthForm({
       </div>
 
       {/* 運動時間 */}
-
       <div
         style={{
           marginBottom: "12px",
@@ -180,17 +282,16 @@ export default function HealthForm({
           value={exerciseMinutes}
           onChange={(e) =>
             setExerciseMinutes(
-              Number(
-                e.target.value
-              )
+              e.target.value === ""
+                ? 0
+                : Number(e.target.value)
             )
           }
           style={inputStyle}
         />
       </div>
 
-      {/* 睡眠 */}
-
+      {/* 睡眠時間 */}
       <div
         style={{
           marginBottom: "12px",
@@ -206,17 +307,16 @@ export default function HealthForm({
           value={sleepHours}
           onChange={(e) =>
             setSleepHours(
-              Number(
-                e.target.value
-              )
+              e.target.value === ""
+                ? 0
+                : Number(e.target.value)
             )
           }
           style={inputStyle}
         />
       </div>
 
-      {/* 水分 */}
-
+      {/* 水分摂取量 */}
       <div
         style={{
           marginBottom: "20px",
@@ -231,15 +331,16 @@ export default function HealthForm({
           value={waterMl}
           onChange={(e) =>
             setWaterMl(
-              Number(
-                e.target.value
-              )
+              e.target.value === ""
+                ? 0
+                : Number(e.target.value)
             )
           }
           style={inputStyle}
         />
       </div>
 
+      {/* 保存ボタン */}
       <button
         onClick={saveHealth}
         style={{
@@ -247,19 +348,23 @@ export default function HealthForm({
           border: "none",
           borderRadius: "12px",
           padding: "12px",
-          background:
-            "#2563eb",
+          background: "#2563eb",
           color: "#fff",
           cursor: "pointer",
         }}
       >
         保存
       </button>
-
     </div>
   );
 }
 
+// =========================
+// Input Style
+// =========================
+//
+// 各inputで共通利用するスタイル
+//
 const inputStyle = {
   width: "100%",
   padding: "10px",
