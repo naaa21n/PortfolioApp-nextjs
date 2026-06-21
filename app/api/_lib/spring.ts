@@ -2,16 +2,11 @@
 // APIのベースURL取得や、ログインレスポンスの形の違いを吸収する役割を持ちます。
 
 export const getSpringApiBaseUrl = () => {
-  // サーバー側だけで使うAPI_BASE_URLを優先します。
-  // 既存設定との互換性のため、未設定ならNEXT_PUBLIC_API_BASE_URLも参照します。
-  const apiBaseUrl =
-    process.env.API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL;
+  // Spring BootのURLはNext.jsサーバー側だけで使うため、NEXT_PUBLIC_を付けません。
+  const apiBaseUrl = process.env.SPRING_API_URL;
 
   if (!apiBaseUrl) {
-    throw new Error(
-      "API_BASE_URLまたはNEXT_PUBLIC_API_BASE_URLが見つかりません"
-    );
+    throw new Error("SPRING_API_URLが見つかりません");
   }
 
   return apiBaseUrl.replace(/\/$/, "");
