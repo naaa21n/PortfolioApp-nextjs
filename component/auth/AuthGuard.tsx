@@ -19,6 +19,7 @@ export default function AuthGuard({
   children,
 }: AuthGuardProps) {
   const router = useRouter();
+
   const [isChecking, setIsChecking] =
     useState(true);
 
@@ -33,7 +34,6 @@ export default function AuthGuard({
 
         if (!response.ok) {
           // セッションAPIが401などを返した場合は、認証情報が無効と判断します。
-          // 表示用に残しているlocalStorageも消してからログイン画面へ戻します。
           clearAuthSession();
           router.replace("/login");
           return;
@@ -47,13 +47,23 @@ export default function AuthGuard({
           return;
         }
 
-        // セッション確認APIから返ったユーザー情報を、画面表示用localStorageへ同期します。
+        // セッション確認APIから返ったユーザー情報を、
+        // 画面表示用localStorageへ同期します。
         // JWT本体はHttpOnly Cookieにあるため、ここでは保存しません。
-        saveAuthSession(data, data.user?.email || "");
+        saveAuthSession(
+          data,
+          data.user?.email || ""
+        );
+
         setIsChecking(false);
       } catch (error) {
-        // 通信エラーなどで確認できない場合も、安全側に倒してログイン画面へ戻します。
-        console.error("Auth Check Error", error);
+        // 通信エラーなどで確認できない場合も、
+        // 安全側に倒してログイン画面へ戻します。
+        console.error(
+          "Auth Check Error",
+          error
+        );
+
         clearAuthSession();
         router.replace("/login");
       }
@@ -75,10 +85,106 @@ export default function AuthGuard({
           background:
             "linear-gradient(135deg,#f5f3ff 0%,#eef2ff 100%)",
           color: "#1e1b4b",
-          fontWeight: "bold",
         }}
       >
-        ログイン情報を確認しています...
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "14px",
+            padding: "28px 36px",
+            textAlign: "center",
+          }}
+        >
+          {/* 大きいローディングアイコン */}
+          <div
+            className="auth-spinner"
+            aria-hidden="true"
+          />
+
+          {/* メインメッセージ */}
+          <p
+            style={{
+              margin: 0,
+              fontSize: "18px",
+              fontWeight: "bold",
+            }}
+          >
+            ログイン情報を確認しています...
+          </p>
+
+          {/* 補足メッセージ */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              color: "#6366f1",
+              fontSize: "14px",
+              fontWeight: 600,
+            }}
+          >
+            {/* 文言横の小さいローディングアイコン */}
+            {/*
+            <span
+              className="auth-spinner-small"
+              aria-hidden="true"
+            />
+            */}
+            <span>
+              1〜2分かかる場合があるため、このままお待ちください
+            </span>
+          </div>
+        </div>
+
+        {/* ローディングアイコンの回転アニメーション */}
+        <style jsx>{`
+          .auth-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid
+              rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: auth-spin 0.8s
+              linear infinite;
+          }
+
+          .auth-spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid
+              rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: auth-spin 0.8s
+              linear infinite;
+            flex-shrink: 0;
+          }
+
+          @keyframes auth-spin {
+            from {
+              transform: rotate(0deg);
+            }
+
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          @media (
+            prefers-reduced-motion: reduce
+          ) {
+            .auth-spinner,
+            .auth-spinner-small {
+              animation-duration: 1.8s;
+            }
+          }
+        `}</style>
       </main>
     );
   }
